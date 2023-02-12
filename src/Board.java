@@ -331,150 +331,22 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         return valMinMax;
     }
 
-    private Pair<Integer, Pair<Piece, Square>> MinMax_SelectPiece(boolean turnSelector, int depthLevel, String prevPos, Stack<String> futureMoves) {
-        LinkedList<Piece> pieces = null;
-        if (turnSelector) { pieces = Wpieces; }
-        else { pieces = Bpieces; }
 
-        Stack<String> bestFutureMoves = new Stack<String>();
 
-        int oppMinMaxVal = 0;
-        Square oppSq = null;
-        Piece oppPiece = null;
-        for (int i = 0; i < pieces.size(); i++) {
-            Piece pieceTemp = pieces.get(i);
-            if ((pieceTemp != null) && ((turnSelector && (pieceTemp.getColor() == 1)) ||
-                    (!turnSelector && (pieceTemp.getColor() == 0))))
-            {
-                Stack<String> tempFutureMoves = new Stack<String>();
-                Pair<Integer, Square> r =
-                        MinMax_SelectSquare(pieceTemp, turnSelector, depthLevel + 1,
-                                prevPos + pieceTemp.getPositionName() + "\r\n", tempFutureMoves);
-                int valMinMax = r.getKey();
-                Square sqTempNext = r.getValue();
-                if ((turnSelector) && ((oppSq == null) || (valMinMax < oppMinMaxVal))) {
-                    oppSq = sqTempNext;
-                    oppPiece = pieceTemp;
-                    oppMinMaxVal = valMinMax;
-                    bestFutureMoves.removeAllElements();
-                    bestFutureMoves.addAll(tempFutureMoves);
-                }
-                if ((!turnSelector) && ((oppSq == null) || (valMinMax > oppMinMaxVal))) {
-                    oppSq = sqTempNext;
-                    oppPiece = pieceTemp;
-                    oppMinMaxVal = valMinMax;
-                    bestFutureMoves.removeAllElements();
-                    bestFutureMoves.addAll(tempFutureMoves);
-                }
-                if (depthLevel == 0) {
-                    if (pieceTemp.getClass().getName().equals("Pawn")) {
-                        ((Pawn) pieceTemp).setMoved(false); // Reset Pawn's First Move Status
-                    }
-                }
-            }
-        }
 
-        String oppSqPosName = (oppSq == null) ? "---" : oppSq.getPositionName();
-        futureMoves.addAll(bestFutureMoves);
-        futureMoves.push(oppPiece.getPositionName() +
-                " to " + oppSqPosName +
-                " Level: " + Integer.toString(depthLevel) +
-                " Val: " + Integer.toString(oppMinMaxVal));
 
-        return (new Pair<Integer, Pair<Piece, Square>>(oppMinMaxVal, new Pair<Piece, Square>(oppPiece, oppSq)));
-    }
 
-    private Pair<Integer, Square> MinMax_SelectSquare(Piece chessPiece, boolean turnSelector, int depthLevel, String prevPos, Stack<String> futureMoves) {
 
-        // Get the Game Tree Depth from UI
-        String strDepth = g.depth.getText();
-        int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
-        gameTreeDepth = (gameTreeDepth > 0) ? gameTreeDepth : DEPTH_LEVEL;
-        if (depthLevel > gameTreeDepth) {
-            // Return MinMax Value if Depth Limit has reached
-            int valMinMax = MinMax_CalcVal(turnSelector);
-            return new Pair<Integer, Square>(valMinMax, null);
-        }
 
-        int nextMoveMinMax = 0;
-        Square nextMoveSq = null;
-        Board nextMoveBoard = null;
-        Piece nextMoveChessPiece = null;
-        Square bestNextMove = null;
-        Stack<String> bestFutureMoves = new Stack<String>();
 
-        List<Square> possibleMoves = chessPiece.getLegalMoves(this);
 
-        // Find the next square to occupy
-        for (int j = 0; j < possibleMoves.size(); j++) {
-            Square sq = possibleMoves.get(j);
-            // If the square is empty or
-            // occupied by a white piece when its Black's Turn or
-            // occupied by a black piece when its White's Turn
-            if ((sq.getOccupyingPiece() == null) ||
-                    ((turnSelector == false) && (sq.getOccupyingPiece().getColor() == 1)) ||
-                    ((turnSelector == true) && (sq.getOccupyingPiece().getColor() == 0))
-                    )
-            {
-                Stack<String> tempFutureMoves = new Stack<String>();
 
-                // Backup current Move, so it can be undone later
-                Square currSq = null;
-                Piece capturedPiece = null;
-                if (sq != null) {
-                    if (sq.isOccupied()) {
-                        capturedPiece = sq.getOccupyingPiece();
-                    }
-                    currSq = chessPiece.getPosition();
-                }
 
-                boolean success = this.takeTurnEx(chessPiece, sq, turnSelector, prevPos, depthLevel);
-                if (!success) continue;
 
-                int valMinMax = 0;
-                Pair<Integer, Pair<Piece, Square>> r = MinMax_SelectPiece(
-                        !turnSelector, depthLevel, prevPos, tempFutureMoves);
-                valMinMax = r.getKey();
 
-                // Undo the move
-                chessPiece.move(currSq);
-                if (capturedPiece != null) {
-                    if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
-                        Bpieces.add(capturedPiece);
-                    }
-                    else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
-                        Wpieces.add(capturedPiece);
-                    }
-                    capturedPiece.move(sq);
-                }
-                cmd.update();
 
-                if ((turnSelector) && ((valMinMax < nextMoveMinMax) || (nextMoveMinMax == 0))) {
-                    // Human Player (White) Move
-                    nextMoveSq = sq;
-                    nextMoveMinMax = valMinMax;
-                    bestFutureMoves.removeAllElements();
-                    bestFutureMoves.addAll(tempFutureMoves);
-                }
-                if ((!turnSelector) && ((valMinMax > nextMoveMinMax) || (nextMoveMinMax == 0))) {
-                    // Computer Player (Black) Move
-                    nextMoveSq = sq;
-                    nextMoveMinMax = valMinMax;
-                    bestFutureMoves.removeAllElements();
-                    bestFutureMoves.addAll(tempFutureMoves);
-                }
-            }
-        }
 
-        if(nextMoveSq != null){
-            bestNextMove = nextMoveSq;
-            futureMoves.addAll(bestFutureMoves);
-            return new Pair<Integer, Square>(nextMoveMinMax, bestNextMove);
-        }
-        else {
-            return new Pair<Integer, Square>(0, null);
-        }
-    }
+
 
     private boolean EvadeCheck() {
 
