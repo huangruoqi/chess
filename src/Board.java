@@ -503,7 +503,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         String strDepth = g.depth.getText();
         int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
         gameTreeDepth = (gameTreeDepth > 0) ? gameTreeDepth : DEPTH_LEVEL;
-        gameTreeDepth = 5;
         if (depthLevel > gameTreeDepth) {
             // Return MinMax Value if Depth Limit has reached
             int value = MinMax_CalcVal(turnSelector);
