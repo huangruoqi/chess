@@ -244,7 +244,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     }
 
     private Square FindSquare(Square sq) {
-
         return this.board[sq.getYNum()][sq.getXNum()];
     }
 
@@ -332,6 +331,117 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     }
 
 
+    private Pair<Integer, Pair<Piece, Square>> Minimax(boolean turnSelector, int depthLevel) {
+        String strDepth = g.depth.getText();
+        int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
+        gameTreeDepth = (gameTreeDepth > 0) ? gameTreeDepth : DEPTH_LEVEL;
+        if (depthLevel > gameTreeDepth) {
+            // Return MinMax Value if Depth Limit has reached
+            int value = MinMax_CalcVal(turnSelector);
+            return (new Pair<Integer, Pair<Piece, Square>>(value, null));
+        }
+        int minimaxValue;
+        Piece best_piece = null;
+        Square best_square = null;
+        if (turnSelector) {
+            minimaxValue = Integer.MAX_VALUE;
+            for (int i = 0; i < Wpieces.size(); i++) {
+                Piece piece = Wpieces.get(i);
+                List<Square> possibleMoves = piece.getLegalMoves(this);
+                for (int j = 0; j < possibleMoves.size(); j++) {
+                    Square square = possibleMoves.get(j);
+                    if ((square.getOccupyingPiece() == null) ||
+                            ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
+                            ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
+                            )
+                    {
+                        Square currSq = null;
+                        Piece capturedPiece = null;
+                        if (square != null) {
+                            if (square.isOccupied()) {
+                                capturedPiece = square.getOccupyingPiece();
+                            }
+                            currSq = piece.getPosition();
+                        }
+                        boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
+                        if (!success) continue;
+
+                        int valMinMax = 0;
+                        Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1);
+                        valMinMax = r.getKey();
+
+                        // Undo the move
+                        piece.move(currSq);
+                        if (capturedPiece != null) {
+                            if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
+                                Bpieces.add(capturedPiece);
+                            }
+                            else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
+                                Wpieces.add(capturedPiece);
+                            }
+                            capturedPiece.move(square);
+                        }
+                        cmd.update();
+                        if (valMinMax < minimaxValue) {
+                            minimaxValue = valMinMax;
+                            best_piece = piece;
+                            best_square = square;
+                        }
+                    }
+                }
+            }
+
+        }
+        else {
+            minimaxValue = Integer.MIN_VALUE;
+            for (int i = 0; i < Bpieces.size(); i++) {
+                Piece piece = Bpieces.get(i);
+                List<Square> possibleMoves = piece.getLegalMoves(this);
+                for (int j = 0; j < possibleMoves.size(); j++) {
+                    Square square = possibleMoves.get(j);
+                    if ((square.getOccupyingPiece() == null) ||
+                            ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
+                            ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
+                            )
+                    {
+                        Square currSq = null;
+                        Piece capturedPiece = null;
+                        if (square != null) {
+                            if (square.isOccupied()) {
+                                capturedPiece = square.getOccupyingPiece();
+                            }
+                            currSq = piece.getPosition();
+                        }
+                        boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
+                        if (!success) continue;
+
+                        int valMinMax = 0;
+                        Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1);
+                        valMinMax = r.getKey();
+
+                        // Undo the move
+                        piece.move(currSq);
+                        if (capturedPiece != null) {
+                            if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
+                                Bpieces.add(capturedPiece);
+                            }
+                            else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
+                                Wpieces.add(capturedPiece);
+                            }
+                            capturedPiece.move(square);
+                        }
+                        cmd.update();
+                        if (valMinMax > minimaxValue) {
+                            minimaxValue = valMinMax;
+                            best_piece = piece;
+                            best_square = square;
+                        }
+                    }
+                }
+            }
+        }
+        return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
+    }
 
 
 
@@ -350,29 +460,29 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
     private boolean EvadeCheck() {
 
-        Stack<String> tempFutureMoves = new Stack<String>();
-        // Try to find best square to move the King
-        Pair<Integer, Square> r = MinMax_SelectSquare(Bk, false, 0, Bk.getPositionName() + "\r\n", tempFutureMoves);
-        int valMinMax = r.getKey();
-        Square sq = r.getValue();
-
-        if (!takeTurnEx(Bk, sq, false, "", 0)) {
-            List<Square> kingsMoves = Bk.getLegalMoves(this);
-            Iterator<Square> iterator = kingsMoves.iterator();
-
-            // If best square is not available pick any available square
-            while (iterator.hasNext()) {
-                sq = iterator.next();
-                if (!cmd.testMove(Bk, sq)) continue;
-                if (cmd.wMoves.get(sq.hashCode()).isEmpty()) {
-                    takeTurnEx(Bk, sq, false, "", 0);
-                    return true;
-                }
-            }
-        }
-        else {
-            return true;
-        }
+//        Stack<String> tempFutureMoves = new Stack<String>();
+//        // Try to find best square to move the King
+//        Pair<Integer, Square> r = MinMax_SelectSquare(Bk, false, 0, Bk.getPositionName() + "\r\n", tempFutureMoves);
+//        int valMinMax = r.getKey();
+//        Square sq = r.getValue();
+//
+//        if (!takeTurnEx(Bk, sq, false, "", 0)) {
+//            List<Square> kingsMoves = Bk.getLegalMoves(this);
+//            Iterator<Square> iterator = kingsMoves.iterator();
+//
+//            // If best square is not available pick any available square
+//            while (iterator.hasNext()) {
+//                sq = iterator.next();
+//                if (!cmd.testMove(Bk, sq)) continue;
+//                if (cmd.wMoves.get(sq.hashCode()).isEmpty()) {
+//                    takeTurnEx(Bk, sq, false, "", 0);
+//                    return true;
+//                }
+//            }
+//        }
+//        else {
+//            return true;
+//        }
 
 
         return false;
@@ -477,14 +587,14 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                             g.gameStatus.setText("Status: Computing");
                             g.buttons.update(g.buttons.getGraphics());
 
-                            if (EvadeCheck()) {
-                                currPiece = Bk;
-                                whiteTurn = !whiteTurn;
-                                newText = newText + "Check evaded\r\n";
-
-                                g.gameStatus.setText("Status: Move to " + currPiece.getPositionName());
-                                g.buttons.update(g.buttons.getGraphics());
-                            }
+//                            if (EvadeCheck()) {
+//                                currPiece = Bk;
+//                                whiteTurn = !whiteTurn;
+//                                newText = newText + "Check evaded\r\n";
+//
+//                                g.gameStatus.setText("Status: Move to " + currPiece.getPositionName());
+//                                g.buttons.update(g.buttons.getGraphics());
+//                            }
                         } else if (cmd.whiteInCheck()) {
                             newText = newText + "White in Check\r\n";
                         }
@@ -497,19 +607,19 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                             g.buttons.update(g.buttons.getGraphics());
 
                             Stack<String> futureMoves = new Stack<String>();
-                            Pair<Integer, Pair<Piece, Square>> r = MinMax_SelectPiece(false, 0, newText, futureMoves);
+                            Pair<Integer, Pair<Piece, Square>> r = Minimax(false, 0);
                             Pair<Piece, Square> m = r.getValue();
                             currPiece = m.getKey();
                             boolean success = takeTurnEx(m.getKey(), m.getValue(), whiteTurn, newText, 0);
                             whiteTurn = true; // Change the turn back to White
 
                             //newText = g.moves.getText();
-                            newText += "Anticipated Moves:\r\n";
-                            String futureMove = futureMoves.isEmpty() ? "" : futureMoves.pop();
-                            while (!futureMoves.isEmpty()) {
-                                newText += futureMove + "\r\n";
-                                futureMove = futureMoves.pop();
-                            }
+//                            newText += "Anticipated Moves:\r\n";
+//                            String futureMove = futureMoves.isEmpty() ? "" : futureMoves.pop();
+//                            while (!futureMoves.isEmpty()) {
+//                                newText += futureMove + "\r\n";
+//                                futureMove = futureMoves.pop();
+//                            }
 
                             g.gameStatus.setText("Status: Move to " + currPiece.getPositionName());
                             g.buttons.update(g.buttons.getGraphics());
