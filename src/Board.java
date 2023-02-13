@@ -46,6 +46,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     private int currY;
     
     private CheckmateDetector cmd;
+    private int count;
 
     public Board(GameWindow g) {
         initializeBoard(g);
@@ -329,15 +330,17 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
         return valMinMax;
     }
-
-
-    private Pair<Integer, Pair<Piece, Square>> Minimax(boolean turnSelector, int depthLevel, Piece selected) {
+    
+    
+    private Pair<Integer, Pair<Piece, Square>> Minimax(boolean turnSelector, int depthLevel, Piece selected, int alpha, int beta) {
         String strDepth = g.depth.getText();
         int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
         gameTreeDepth = (gameTreeDepth > 0) ? gameTreeDepth : DEPTH_LEVEL;
+        
         if (depthLevel > gameTreeDepth) {
             // Return MinMax Value if Depth Limit has reached
             int value = MinMax_CalcVal(turnSelector);
+            count++;
             return (new Pair<Integer, Pair<Piece, Square>>(value, null));
         }
         int minimaxValue;
@@ -366,7 +369,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                     if (!success) continue;
 
                     int valMinMax = 0;
-                    Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1, null);
+                    Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1, null, alpha, beta);
                     valMinMax = r.getKey();
 
                     // Undo the move
@@ -383,6 +386,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                     cmd.update();
                     if (valMinMax < minimaxValue) {
                         minimaxValue = valMinMax;
+                        
                         best_piece = piece;
                         best_square = square;
                     }
@@ -415,7 +419,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         if (!success) continue;
 
                         int valMinMax = 0;
-                        Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1, null);
+                        Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1, null, alpha, beta);
                         valMinMax = r.getKey();
 
                         // Undo the move
@@ -432,6 +436,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         cmd.update();
                         if (valMinMax < minimaxValue) {
                             minimaxValue = valMinMax;
+                            
                             best_piece = piece;
                             best_square = square;
                         }
@@ -464,7 +469,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         if (!success) continue;
 
                         int valMinMax = 0;
-                        Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1, null);
+                        Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1, null, alpha, beta);
                         valMinMax = r.getKey();
 
                         // Undo the move
@@ -481,6 +486,188 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         cmd.update();
                         if (valMinMax > minimaxValue) {
                             minimaxValue = valMinMax;
+                 
+                            best_piece = piece;
+                            best_square = square;
+                        }
+                    }
+                }
+            }
+        }
+        return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
+    }
+
+
+    private Pair<Integer, Pair<Piece, Square>> Minimax_pruning(boolean turnSelector, int depthLevel, Piece selected, int alpha, int beta) {
+    	boolean done = false;
+        String strDepth = g.depth.getText();
+        int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
+        gameTreeDepth = (gameTreeDepth > 0) ? gameTreeDepth : DEPTH_LEVEL;
+        gameTreeDepth = 5;
+        if (depthLevel > gameTreeDepth) {
+            // Return MinMax Value if Depth Limit has reached
+            int value = MinMax_CalcVal(turnSelector);
+            count++;
+            return (new Pair<Integer, Pair<Piece, Square>>(value, null));
+        }
+        int minimaxValue;
+        Piece best_piece = null;
+        Square best_square = null;
+        if (selected != null) {
+        	Piece piece = selected;
+        	minimaxValue = Integer.MIN_VALUE;
+            List<Square> possibleMoves = piece.getLegalMoves(this);
+            for (int j = 0; j < possibleMoves.size(); j++) {
+                Square square = possibleMoves.get(j);
+                if ((square.getOccupyingPiece() == null) ||
+                        ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
+                        ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
+                        )
+                {
+                    Square currSq = null;
+                    Piece capturedPiece = null;
+                    if (square != null) {
+                        if (square.isOccupied()) {
+                            capturedPiece = square.getOccupyingPiece();
+                        }
+                        currSq = piece.getPosition();
+                    }
+                    boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
+                    if (!success) continue;
+
+                    int valMinMax = 0;
+                    Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(!turnSelector, depthLevel+1, null, alpha, beta);
+                    valMinMax = r.getKey();
+
+                    // Undo the move
+                    piece.move(currSq);
+                    if (capturedPiece != null) {
+                        if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
+                            Bpieces.add(capturedPiece);
+                        }
+                        else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
+                            Wpieces.add(capturedPiece);
+                        }
+                        capturedPiece.move(square);
+                    }
+                    cmd.update();
+                    if (valMinMax < minimaxValue) {
+                        minimaxValue = valMinMax;
+                        alpha = Math.max(alpha, valMinMax);
+                        if (beta <= alpha) {
+                        	done = true;
+                            break;
+                        }
+                        best_piece = piece;
+                        best_square = square;
+                    }
+                }
+
+            }
+            return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
+        }
+        if (turnSelector) {
+            minimaxValue = Integer.MAX_VALUE;
+            for (int i = 0; i < Wpieces.size(); i++) {
+            	if (done) break;
+                Piece piece = Wpieces.get(i);
+                List<Square> possibleMoves = piece.getLegalMoves(this);
+                for (int j = 0; j < possibleMoves.size(); j++) {
+                    Square square = possibleMoves.get(j);
+                    if ((square.getOccupyingPiece() == null) ||
+                            ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
+                            ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
+                            )
+                    {
+                        Square currSq = null;
+                        Piece capturedPiece = null;
+                        if (square != null) {
+                            if (square.isOccupied()) {
+                                capturedPiece = square.getOccupyingPiece();
+                            }
+                            currSq = piece.getPosition();
+                        }
+                        boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
+                        if (!success) continue;
+
+                        int valMinMax = 0;
+                        Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(!turnSelector, depthLevel+1, null, alpha, beta);
+                        valMinMax = r.getKey();
+
+                        // Undo the move
+                        piece.move(currSq);
+                        if (capturedPiece != null) {
+                            if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
+                                Bpieces.add(capturedPiece);
+                            }
+                            else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
+                                Wpieces.add(capturedPiece);
+                            }
+                            capturedPiece.move(square);
+                        }
+                        cmd.update();
+                        if (valMinMax < minimaxValue) {
+                            minimaxValue = valMinMax;
+                            beta = Math.min(beta, valMinMax);
+                            if (beta <= alpha) {
+                            	done = true;
+                                break;
+                            }
+                            best_piece = piece;
+                            best_square = square;
+                        }
+                    }
+                }
+            }
+
+        }
+        else {
+            minimaxValue = Integer.MIN_VALUE;
+            for (int i = 0; i < Bpieces.size(); i++) {
+            	if (done) break;
+                Piece piece = Bpieces.get(i);
+                List<Square> possibleMoves = piece.getLegalMoves(this);
+                for (int j = 0; j < possibleMoves.size(); j++) {
+                    Square square = possibleMoves.get(j);
+                    if ((square.getOccupyingPiece() == null) ||
+                            ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
+                            ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
+                            )
+                    {
+                        Square currSq = null;
+                        Piece capturedPiece = null;
+                        if (square != null) {
+                            if (square.isOccupied()) {
+                                capturedPiece = square.getOccupyingPiece();
+                            }
+                            currSq = piece.getPosition();
+                        }
+                        boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
+                        if (!success) continue;
+
+                        int valMinMax = 0;
+                        Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(!turnSelector, depthLevel+1, null, alpha, beta);
+                        valMinMax = r.getKey();
+
+                        // Undo the move
+                        piece.move(currSq);
+                        if (capturedPiece != null) {
+                            if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
+                                Bpieces.add(capturedPiece);
+                            }
+                            else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
+                                Wpieces.add(capturedPiece);
+                            }
+                            capturedPiece.move(square);
+                        }
+                        cmd.update();
+                        if (valMinMax > minimaxValue) {
+                            minimaxValue = valMinMax;
+                            alpha = Math.max(alpha, valMinMax);
+                            if (beta <= alpha) {
+                            	done = true;
+                                break;
+                            }
                             best_piece = piece;
                             best_square = square;
                         }
@@ -510,7 +697,9 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
         Stack<String> tempFutureMoves = new Stack<String>();
         // Try to find best square to move the King
-        Pair<Integer, Pair<Piece, Square>> r = Minimax(false, 0, Bk);
+        count = 0;
+        Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(false, 0, Bk, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        System.out.println(count);
         int valMinMax = r.getKey();
         Square sq = r.getValue().getValue();
 
@@ -654,7 +843,9 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 	                            g.buttons.update(g.buttons.getGraphics());
 	
 	                            Stack<String> futureMoves = new Stack<String>();
-	                            Pair<Integer, Pair<Piece, Square>> r = Minimax(false, 0, null);
+	                            count = 0;
+	                            Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(false, 0, null, Integer.MIN_VALUE, Integer.MAX_VALUE);
+	                            System.out.println(count);
 	                            Pair<Piece, Square> m = r.getValue();
 	                            currPiece = m.getKey();
 	                            boolean success = takeTurnEx(m.getKey(), m.getValue(), whiteTurn, newText, 0);
