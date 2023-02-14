@@ -554,8 +554,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         minimaxValue = valMinMax;
                         alpha = Math.max(alpha, valMinMax);
                         if (beta <= alpha) {
-                        	done = true;
-                            break;
+                            return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
                         }
                         best_piece = piece;
                         best_square = square;
@@ -609,8 +608,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                             minimaxValue = valMinMax;
                             beta = Math.min(beta, valMinMax);
                             if (beta <= alpha) {
-                            	done = true;
-                                break;
+                                return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
                             }
                             best_piece = piece;
                             best_square = square;
@@ -664,8 +662,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                             minimaxValue = valMinMax;
                             alpha = Math.max(alpha, valMinMax);
                             if (beta <= alpha) {
-                            	done = true;
-                                break;
+                                return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
                             }
                             best_piece = piece;
                             best_square = square;
