@@ -820,13 +820,12 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
                             g.gameStatus.setText("Status: Computing");
                             g.buttons.update(g.buttons.getGraphics());
-                            blackCheckEvaded = true;
 
                             if (EvadeCheck()) {
                                 currPiece = Bk;
                                 whiteTurn = !whiteTurn;
                                 newText = newText + "Check evaded\r\n";
-
+                                blackCheckEvaded = true;
                                 g.gameStatus.setText("Status: Move to " + currPiece.getPositionName());
                                 g.buttons.update(g.buttons.getGraphics());
                             }
