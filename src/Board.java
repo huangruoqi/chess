@@ -285,13 +285,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         int minorPieceCount = 0;
         boolean kingPresent = false;
 
-        LinkedList<Piece> pieces = null;
-        if (turnSelector == false) { // Black's Turn
-            pieces = Bpieces;
-        }
-        else { // White's Turn
-            pieces = Wpieces;
-        }
+        LinkedList<Piece> pieces = Bpieces;
 
         int pCount = pieces.size();
 
