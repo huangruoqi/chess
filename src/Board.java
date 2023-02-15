@@ -283,44 +283,71 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
         int majorPieceCount = 0;
         int minorPieceCount = 0;
-        boolean kingPresent = false;
+        boolean BkingPresent = false;
+        boolean WkingPresent = false;
 
-        LinkedList<Piece> pieces = Bpieces;
 
-        int pCount = pieces.size();
-
-        for (i = 0; i < pCount; i++) {
-            Piece piece = pieces.get(i);
+        for (i = 0; i < Bpieces.size(); i++) {
+            Piece piece = Bpieces.get(i);
             if (piece.getClass().getName().equals("Bishop")) { minorPieceCount++; }
             if (piece.getClass().getName().equals("Knight")) { minorPieceCount++; }
             if (piece.getClass().getName().equals("Queen")) { majorPieceCount++; }
             if (piece.getClass().getName().equals("Rook")) { majorPieceCount++; }
-            if (piece.getClass().getName().equals("King")) { majorPieceCount++; kingPresent = true; }
+            if (piece.getClass().getName().equals("King")) { BkingPresent = true; }
 
-            List<Square> possibleMoves = piece.getLegalMoves(this);
-            for (j = 0; j < possibleMoves.size(); j++) {
-                Square sq = possibleMoves.get(j);
-                Piece occPiece = sq.getOccupyingPiece();
-                if (occPiece != null)
-                {
-                    if ((turnSelector) && (occPiece.getColor() == 0)) { // White Piece attacking Black Piece
-                        pUnderThreat++;
-                        if (occPiece.getClass().getName().equals("King")){
-                            kingUnderThreat++;
-                        }
-                    }
-                    if ((!turnSelector) && (occPiece.getColor() == 1)) { // Black Piece attacking White Piece
-                        pUnderThreat++;
-                        if (occPiece.getClass().getName().equals("King")){
-                            kingUnderThreat++;
-                        }
-                    }
-                }
-            }
+//            List<Square> possibleMoves = piece.getLegalMoves(this);
+//            for (j = 0; j < possibleMoves.size(); j++) {
+//                Square sq = possibleMoves.get(j);
+//                Piece occPiece = sq.getOccupyingPiece();
+//                if (occPiece != null)
+//                {
+//                    if ((turnSelector) && (occPiece.getColor() == 0)) { // White Piece attacking Black Piece
+//                        pUnderThreat++;
+//                        if (occPiece.getClass().getName().equals("King")){
+//                            kingUnderThreat++;
+//                        }
+//                    }
+//                    if ((!turnSelector) && (occPiece.getColor() == 1)) { // Black Piece attacking White Piece
+//                        pUnderThreat++;
+//                        if (occPiece.getClass().getName().equals("King")){
+//                            kingUnderThreat++;
+//                        }
+//                    }
+//                }
+//            }
+        }
+        for (i = 0; i < Wpieces.size(); i++) {
+            Piece piece = Wpieces.get(i);
+            if (piece.getClass().getName().equals("Bishop")) { minorPieceCount--; }
+            if (piece.getClass().getName().equals("Knight")) { minorPieceCount--; }
+            if (piece.getClass().getName().equals("Queen")) { majorPieceCount--; }
+            if (piece.getClass().getName().equals("Rook")) { majorPieceCount--; }
+            if (piece.getClass().getName().equals("King")) { WkingPresent = true; }
+
+//            List<Square> possibleMoves = piece.getLegalMoves(this);
+//            for (j = 0; j < possibleMoves.size(); j++) {
+//                Square sq = possibleMoves.get(j);
+//                Piece occPiece = sq.getOccupyingPiece();
+//                if (occPiece != null)
+//                {
+//                    if ((turnSelector) && (occPiece.getColor() == 0)) { // White Piece attacking Black Piece
+//                        pUnderThreat++;
+//                        if (occPiece.getClass().getName().equals("King")){
+//                            kingUnderThreat++;
+//                        }
+//                    }
+//                    if ((!turnSelector) && (occPiece.getColor() == 1)) { // Black Piece attacking White Piece
+//                        pUnderThreat++;
+//                        if (occPiece.getClass().getName().equals("King")){
+//                            kingUnderThreat++;
+//                        }
+//                    }
+//                }
+//            }
         }
 
-        valMinMax = (pCount * 4) + (majorPieceCount * 8) + (minorPieceCount * 6) +
-                (pUnderThreat * 9) + (kingUnderThreat * 10) + (kingPresent ? 10 : -100);
+        valMinMax = ((Bpieces.size() - Wpieces.size()) * 4) + (majorPieceCount * 8) + (minorPieceCount * 6) +
+                (pUnderThreat * 9) + (kingUnderThreat * 10) + (BkingPresent ? 10 : -1000) + (WkingPresent ? -1000: 10);
 
         return valMinMax;
     }
@@ -378,9 +405,8 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         capturedPiece.move(square);
                     }
                     cmd.update();
-                    if (valMinMax < minimaxValue) {
+                    if (valMinMax > minimaxValue) {
                         minimaxValue = valMinMax;
-                        
                         best_piece = piece;
                         best_square = square;
                     }
@@ -544,7 +570,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         capturedPiece.move(square);
                     }
                     cmd.update();
-                    if (valMinMax < minimaxValue) {
+                    if (valMinMax > minimaxValue) {
                         minimaxValue = valMinMax;
                         alpha = Math.max(alpha, valMinMax);
                         if (beta <= alpha) {
@@ -812,7 +838,11 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                             g.gameStatus.setText("Status: Computing");
                             g.buttons.update(g.buttons.getGraphics());
 
+                            long startTime = System.nanoTime();
+                            count = 0;
                             if (EvadeCheck()) {
+                                System.out.println(""+(System.nanoTime() - startTime)/1000000000 + " seconds");
+                                System.out.println(count + " evaluations");
                                 currPiece = Bk;
                                 whiteTurn = !whiteTurn;
                                 newText = newText + "Check evaded\r\n";
@@ -827,14 +857,17 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         if (!blackCheckEvaded) {
 	                        currPiece = null;
 	                        if (!whiteTurn) {
+
 	                            // Let Computer pick the next turn
 	                            g.gameStatus.setText("Status: Computing");
 	                            g.buttons.update(g.buttons.getGraphics());
 	
 	                            Stack<String> futureMoves = new Stack<String>();
 	                            count = 0;
+	                            long startTime = System.nanoTime();
 	                            Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(false, 0, null, Integer.MIN_VALUE, Integer.MAX_VALUE);
-	                            System.out.println(count);
+	                            System.out.println(""+(System.nanoTime() - startTime)/1000000000 + " seconds");
+	                            System.out.println(count + " evaluations");
 	                            Pair<Piece, Square> m = r.getValue();
 	                            currPiece = m.getKey();
 	                            boolean success = takeTurnEx(m.getKey(), m.getValue(), whiteTurn, newText, 0);
@@ -847,10 +880,10 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 	//                                newText += futureMove + "\r\n";
 	//                                futureMove = futureMoves.pop();
 	//                            }
-	
 	                            g.gameStatus.setText("Status: Move to " + currPiece.getPositionName());
 	                            g.buttons.update(g.buttons.getGraphics());
 	                        }
+	                        
                         }
                     }
                 } else {
