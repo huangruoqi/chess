@@ -8,6 +8,7 @@ public class Pawn extends Piece {
     
     public Pawn(int color, Square initSq, String img_file) {
         super(color, initSq, img_file);
+        setScore(1);
     }
 
     public void setMoved(boolean moved) {

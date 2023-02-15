@@ -7,6 +7,7 @@ public class Queen extends Piece {
 
     public Queen(int color, Square initSq, String img_file) {
         super(color, initSq, img_file);
+        setScore(9);
     }
 
     @Override

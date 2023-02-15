@@ -14,6 +14,7 @@ public abstract class Piece {
     private Square currentSquare;
     private BufferedImage img;
     private String imgFile;
+    private int score;
 
     public Piece(int color, Square initSq, String img_file) {
         this.color = color;
@@ -51,6 +52,14 @@ public abstract class Piece {
         else  {
             return null;
         }
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int s) {
+        score = s;
     }
 
     public String getPositionName() {

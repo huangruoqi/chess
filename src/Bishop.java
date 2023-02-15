@@ -6,6 +6,7 @@ public class Bishop extends Piece {
 
     public Bishop(int color, Square initSq, String img_file) {
         super(color, initSq, img_file);
+        setScore(3);
     }
     
     @Override

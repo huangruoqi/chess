@@ -47,6 +47,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     
     private CheckmateDetector cmd;
     private int count;
+    private int score = 0;
 
     public Board(GameWindow g) {
         initializeBoard(g);
@@ -271,87 +272,20 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
         return null;
     }
-
-    private int MinMax_CalcVal(boolean turnSelector) {
-
-        int i = 0;
-        int j = 0;
-        int valMinMax = 0;
-
-        int pUnderThreat = 0;
-        int kingUnderThreat = 0;
-
-        int majorPieceCount = 0;
-        int minorPieceCount = 0;
-        boolean BkingPresent = false;
-        boolean WkingPresent = false;
-
-
-        for (i = 0; i < Bpieces.size(); i++) {
-            Piece piece = Bpieces.get(i);
-            if (piece.getClass().getName().equals("Bishop")) { minorPieceCount++; }
-            if (piece.getClass().getName().equals("Knight")) { minorPieceCount++; }
-            if (piece.getClass().getName().equals("Queen")) { majorPieceCount++; }
-            if (piece.getClass().getName().equals("Rook")) { majorPieceCount++; }
-            if (piece.getClass().getName().equals("King")) { BkingPresent = true; }
-
-//            List<Square> possibleMoves = piece.getLegalMoves(this);
-//            for (j = 0; j < possibleMoves.size(); j++) {
-//                Square sq = possibleMoves.get(j);
-//                Piece occPiece = sq.getOccupyingPiece();
-//                if (occPiece != null)
-//                {
-//                    if ((turnSelector) && (occPiece.getColor() == 0)) { // White Piece attacking Black Piece
-//                        pUnderThreat++;
-//                        if (occPiece.getClass().getName().equals("King")){
-//                            kingUnderThreat++;
-//                        }
-//                    }
-//                    if ((!turnSelector) && (occPiece.getColor() == 1)) { // Black Piece attacking White Piece
-//                        pUnderThreat++;
-//                        if (occPiece.getClass().getName().equals("King")){
-//                            kingUnderThreat++;
-//                        }
-//                    }
-//                }
-//            }
-        }
-        for (i = 0; i < Wpieces.size(); i++) {
-            Piece piece = Wpieces.get(i);
-            if (piece.getClass().getName().equals("Bishop")) { minorPieceCount--; }
-            if (piece.getClass().getName().equals("Knight")) { minorPieceCount--; }
-            if (piece.getClass().getName().equals("Queen")) { majorPieceCount--; }
-            if (piece.getClass().getName().equals("Rook")) { majorPieceCount--; }
-            if (piece.getClass().getName().equals("King")) { WkingPresent = true; }
-
-//            List<Square> possibleMoves = piece.getLegalMoves(this);
-//            for (j = 0; j < possibleMoves.size(); j++) {
-//                Square sq = possibleMoves.get(j);
-//                Piece occPiece = sq.getOccupyingPiece();
-//                if (occPiece != null)
-//                {
-//                    if ((turnSelector) && (occPiece.getColor() == 0)) { // White Piece attacking Black Piece
-//                        pUnderThreat++;
-//                        if (occPiece.getClass().getName().equals("King")){
-//                            kingUnderThreat++;
-//                        }
-//                    }
-//                    if ((!turnSelector) && (occPiece.getColor() == 1)) { // Black Piece attacking White Piece
-//                        pUnderThreat++;
-//                        if (occPiece.getClass().getName().equals("King")){
-//                            kingUnderThreat++;
-//                        }
-//                    }
-//                }
-//            }
-        }
-
-        valMinMax = ((Bpieces.size() - Wpieces.size()) * 4) + (majorPieceCount * 8) + (minorPieceCount * 6) +
-                (pUnderThreat * 9) + (kingUnderThreat * 10) + (BkingPresent ? 10 : -1000) + (WkingPresent ? -1000: 10);
-
-        return valMinMax;
-    }
     
+    private int getScore() {
+    	int legalMovesScore = 0;
+        int piecesScore = 0;
+    	for (Piece p: Bpieces) {
+    		legalMovesScore += p.getLegalMoves(this).size();
+            piecesScore += p.getScore();
+    	}
+    	for (Piece p: Wpieces) {
+    		legalMovesScore -= p.getLegalMoves(this).size();
+            piecesScore -= p.getScore();
+    	}
+    	return (int)(piecesScore + legalMovesScore / 10.0);
+    }
     
     private Pair<Integer, Pair<Piece, Square>> Minimax(boolean turnSelector, int depthLevel, Piece selected, int alpha, int beta) {
         String strDepth = g.depth.getText();
@@ -360,7 +294,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         
         if (depthLevel > gameTreeDepth) {
             // Return MinMax Value if Depth Limit has reached
-            int value = MinMax_CalcVal(turnSelector);
+            int value = getScore();
             count++;
             return (new Pair<Integer, Pair<Piece, Square>>(value, null));
         }
@@ -395,6 +329,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
                     // Undo the move
                     piece.move(currSq);
+
                     if (capturedPiece != null) {
                         if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
                             Bpieces.add(capturedPiece);
@@ -444,6 +379,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
                         // Undo the move
                         piece.move(currSq);
+
                         if (capturedPiece != null) {
                             if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
                                 Bpieces.add(capturedPiece);
@@ -487,7 +423,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         }
                         boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
                         if (!success) continue;
-
                         int valMinMax = 0;
                         Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1, null, alpha, beta);
                         valMinMax = r.getKey();
@@ -522,12 +457,11 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     	boolean done = false;
         String strDepth = g.depth.getText();
         int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
-        gameTreeDepth = (gameTreeDepth > 0) ? gameTreeDepth : DEPTH_LEVEL;
+        gameTreeDepth = (gameTreeDepth >= 0) ? gameTreeDepth : DEPTH_LEVEL;
         if (depthLevel > gameTreeDepth) {
             // Return MinMax Value if Depth Limit has reached
-            int value = MinMax_CalcVal(turnSelector);
             count++;
-            return (new Pair<Integer, Pair<Piece, Square>>(value, null));
+            return (new Pair<Integer, Pair<Piece, Square>>(getScore(), null));
         }
         int minimaxValue;
         Piece best_piece = null;
@@ -551,9 +485,9 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         }
                         currSq = piece.getPosition();
                     }
+
                     boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
                     if (!success) continue;
-
                     int valMinMax = 0;
                     Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(!turnSelector, depthLevel+1, null, alpha, beta);
                     valMinMax = r.getKey();
@@ -661,7 +595,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         }
                         boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
                         if (!success) continue;
-
                         int valMinMax = 0;
                         Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(!turnSelector, depthLevel+1, null, alpha, beta);
                         valMinMax = r.getKey();
@@ -763,7 +696,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                     success = true;
 
                     if (g.watchMoves.isSelected()) {
-                        int valMinMax = MinMax_CalcVal(turnSelector);
+                        int valMinMax = getScore();
                         newText = prevPos + piece.getPositionName();
                         newText = newText + " Level: " + Integer.toString(depthLevel);
                         newText = newText + " Val: " + Integer.toString(valMinMax) + "\r\n";

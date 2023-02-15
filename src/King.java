@@ -7,6 +7,7 @@ public class King extends Piece {
 
     public King(int color, Square initSq, String img_file) {
         super(color, initSq, img_file);
+        setScore(200);
     }
 
     @Override
