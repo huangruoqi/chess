@@ -285,13 +285,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         int minorPieceCount = 0;
         boolean kingPresent = false;
 
-        LinkedList<Piece> pieces = null;
-        if (turnSelector == false) { // Black's Turn
-            pieces = Bpieces;
-        }
-        else { // White's Turn
-            pieces = Wpieces;
-        }
+        LinkedList<Piece> pieces = Bpieces;
 
         int pCount = pieces.size();
 
@@ -554,8 +548,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         minimaxValue = valMinMax;
                         alpha = Math.max(alpha, valMinMax);
                         if (beta <= alpha) {
-                        	done = true;
-                            break;
+                            return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
                         }
                         best_piece = piece;
                         best_square = square;
@@ -609,8 +602,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                             minimaxValue = valMinMax;
                             beta = Math.min(beta, valMinMax);
                             if (beta <= alpha) {
-                            	done = true;
-                                break;
+                                return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
                             }
                             best_piece = piece;
                             best_square = square;
@@ -664,8 +656,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                             minimaxValue = valMinMax;
                             alpha = Math.max(alpha, valMinMax);
                             if (beta <= alpha) {
-                            	done = true;
-                                break;
+                                return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
                             }
                             best_piece = piece;
                             best_square = square;
@@ -820,13 +811,12 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
                             g.gameStatus.setText("Status: Computing");
                             g.buttons.update(g.buttons.getGraphics());
-                            blackCheckEvaded = true;
 
                             if (EvadeCheck()) {
                                 currPiece = Bk;
                                 whiteTurn = !whiteTurn;
                                 newText = newText + "Check evaded\r\n";
-
+                                blackCheckEvaded = true;
                                 g.gameStatus.setText("Status: Move to " + currPiece.getPositionName());
                                 g.buttons.update(g.buttons.getGraphics());
                             }
