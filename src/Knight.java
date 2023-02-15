@@ -1,6 +1,7 @@
 
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+
 import java.util.List;
 
 public class Knight extends Piece {
@@ -12,7 +13,7 @@ public class Knight extends Piece {
 
     @Override
     public List<Square> getLegalMoves(Board b) {
-        LinkedList<Square> legalMoves = new LinkedList<Square>();
+        ArrayList<Square> legalMoves = new ArrayList<Square>();
         Square[][] board = b.getSquareArray();
         
         int x = this.getPosition().getXNum();

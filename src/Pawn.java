@@ -1,7 +1,8 @@
 
 
 import java.util.List;
-import java.util.LinkedList;
+import java.util.ArrayList;
+
 
 public class Pawn extends Piece {
     private boolean wasMoved;
@@ -24,7 +25,7 @@ public class Pawn extends Piece {
 
     @Override
     public List<Square> getLegalMoves(Board b) {
-        LinkedList<Square> legalMoves = new LinkedList<Square>();
+        ArrayList<Square> legalMoves = new ArrayList<Square>();
         
         Square[][] board = b.getSquareArray();
         

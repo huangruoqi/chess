@@ -281,7 +281,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
             piecesScore += p.getScore();
     	}
     	for (Piece p: Wpieces) {
-    		legalMovesScore -= p.getLegalMoves(this).size();
+//    		legalMovesScore -= p.getLegalMoves(this).size();
             piecesScore -= p.getScore();
     	}
     	return (int)(piecesScore + legalMovesScore / 10.0);
@@ -454,7 +454,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
 
     private Pair<Integer, Pair<Piece, Square>> Minimax_pruning(boolean turnSelector, int depthLevel, Piece selected, int alpha, int beta) {
-    	boolean done = false;
         String strDepth = g.depth.getText();
         int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
         gameTreeDepth = (gameTreeDepth >= 0) ? gameTreeDepth : DEPTH_LEVEL;
@@ -521,9 +520,9 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         if (turnSelector) {
             minimaxValue = Integer.MAX_VALUE;
             for (int i = 0; i < Wpieces.size(); i++) {
-            	if (done) break;
                 Piece piece = Wpieces.get(i);
                 List<Square> possibleMoves = piece.getLegalMoves(this);
+//                Collections.shuffle(possibleMoves);
                 for (int j = 0; j < possibleMoves.size(); j++) {
                     Square square = possibleMoves.get(j);
                     if ((square.getOccupyingPiece() == null) ||
@@ -575,9 +574,9 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         else {
             minimaxValue = Integer.MIN_VALUE;
             for (int i = 0; i < Bpieces.size(); i++) {
-            	if (done) break;
                 Piece piece = Bpieces.get(i);
                 List<Square> possibleMoves = piece.getLegalMoves(this);
+//                Collections.shuffle(possibleMoves);
                 for (int j = 0; j < possibleMoves.size(); j++) {
                     Square square = possibleMoves.get(j);
                     if ((square.getOccupyingPiece() == null) ||

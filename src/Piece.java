@@ -4,6 +4,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -169,7 +170,7 @@ public abstract class Piece {
     }
     
     public List<Square> getDiagonalOccupations(Square[][] board, int x, int y) {
-        LinkedList<Square> diagOccup = new LinkedList<Square>();
+        ArrayList<Square> diagOccup = new ArrayList<Square>();
         
         int xNW = x - 1;
         int xSW = x - 1;
