@@ -128,7 +128,7 @@ public class Pawn extends Piece {
                 if (board[y+1][x-1].isOccupied()) {
                     Piece piece = board[y+1][x-1].getOccupyingPiece();
                     if (piece.getColor()!=this.getColor()) {
-                    	Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y+1][x+1]);
+                    	Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y+1][x-1]);
                         moves.add(new Pair<Integer, Pair<Piece, Square>>(piece.getScore(), pair));
                     }
                 }
@@ -154,7 +154,7 @@ public class Pawn extends Piece {
                 if (board[y-1][x+1].isOccupied()) {
                     Piece piece = board[y-1][x+1].getOccupyingPiece();
                     if (piece.getColor()!=this.getColor()) {
-                    	Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y+1][x+1]);
+                    	Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y-1][x+1]);
                         moves.add(new Pair<Integer, Pair<Piece, Square>>(piece.getScore(), pair));
                     }
                 }
@@ -164,7 +164,7 @@ public class Pawn extends Piece {
                 if (board[y-1][x-1].isOccupied()) {
                     Piece piece = board[y-1][x-1].getOccupyingPiece();
                     if (piece.getColor()!=this.getColor()) {
-                    	Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y+1][x+1]);
+                    	Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y-1][x-1]);
                         moves.add(new Pair<Integer, Pair<Piece, Square>>(piece.getScore(), pair));
                     }
                 }

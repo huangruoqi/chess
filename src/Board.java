@@ -978,12 +978,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 	                            System.out.println(count + " evaluations");
 	                            Pair<Piece, Square> m = r.getValue();
 	                            currPiece = m.getKey();
-	                            Square s = m.getValue();
-	                            int x = currPiece.getPosition().getXNum();
-	                            int y = currPiece.getPosition().getYNum();
-	                            int xq = s.getXNum();
-	                            int yq = s.getYNum();
-	                            System.out.println(x + " " + y + "->" + xq + " " + yq);
 	                            boolean success = takeTurnEx(m.getKey(), m.getValue(), whiteTurn, newText, 0);
 	                            whiteTurn = true; // Change the turn back to White
 	
