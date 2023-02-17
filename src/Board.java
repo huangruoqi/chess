@@ -819,7 +819,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         Stack<String> tempFutureMoves = new Stack<String>();
         // Try to find best square to move the King
         count = 0;
-        Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(false, 0, Bk, Integer.MIN_VALUE, Integer.MAX_VALUE);
+        Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning_sorted(false, 0, Bk, Integer.MIN_VALUE, Integer.MAX_VALUE);
         System.out.println(count);
         int valMinMax = r.getKey();
         Square sq = r.getValue().getValue();
