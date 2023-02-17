@@ -718,7 +718,9 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                 }
                 currSq = piece.getPosition();
                 boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
-                if (!success) continue;
+                if (!success) {
+                	continue;
+                }
                 int valMinMax = 0;
                 Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning_sorted(!turnSelector, depthLevel+1, null, alpha, beta);
                 valMinMax = r.getKey();
@@ -751,6 +753,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
             for (int i = 0; i < moves.size(); i++) {
                 Piece piece = moves.get(i).getValue().getKey();
                 Square square = moves.get(i).getValue().getValue();
+
                 Piece capturedPiece = null;
                 Square currSq = null;
                 if (square.isOccupied()) {
@@ -844,6 +847,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     private boolean takeTurnEx(Piece piece, Square sq, boolean turnSelector, String prevPos, int depthLevel) {
         String newText = "";
         boolean success = false;
+        
         if (piece != null) {
             if (piece.getColor() == 0 && turnSelector) {
                 newText = prevPos + "Black Piece on White's turn\r\n";
@@ -913,6 +917,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 //                if (legalMoves.contains(sq) && movable.contains(sq)
 //                        && cmd.testMove(currPiece, sq)) {
                     sq.setDisplay(true);
+                    
                     currPiece.move(sq);
                     cmd.update();
 
@@ -973,6 +978,12 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 	                            System.out.println(count + " evaluations");
 	                            Pair<Piece, Square> m = r.getValue();
 	                            currPiece = m.getKey();
+	                            Square s = m.getValue();
+	                            int x = currPiece.getPosition().getXNum();
+	                            int y = currPiece.getPosition().getYNum();
+	                            int xq = s.getXNum();
+	                            int yq = s.getYNum();
+	                            System.out.println(x + " " + y + "->" + xq + " " + yq);
 	                            boolean success = takeTurnEx(m.getKey(), m.getValue(), whiteTurn, newText, 0);
 	                            whiteTurn = true; // Change the turn back to White
 	
@@ -990,7 +1001,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                         }
                     }
 //                } else {
-//                    currPiece.getPosition().setDisplay(true);
+                    currPiece.getPosition().setDisplay(true);
 //                    currPiece = null;
 //                    newText = newText + "Invalid Move\r\n";
 //                }

@@ -49,13 +49,13 @@ public class Pawn extends Piece {
             }
             
             if (x+1 < 8 && y+1 < 8) {
-                if (board[y+1][x+1].isOccupied()) {
+                if (board[y+1][x+1].isOccupied()&&board[y+1][x+1].getOccupyingPiece().getColor()!=this.getColor()) {
                 	primary.add(board[y+1][x+1]);
                 }
             }
                 
             if (x-1 >= 0 && y+1 < 8) {
-                if (board[y+1][x-1].isOccupied()) {
+                if (board[y+1][x-1].isOccupied()&&board[y+1][x-1].getOccupyingPiece().getColor()!=this.getColor()) {
                 	primary.add(board[y+1][x-1]);
                 }
             }
@@ -75,13 +75,13 @@ public class Pawn extends Piece {
             }
             
             if (x+1 < 8 && y-1 >= 0) {
-                if (board[y-1][x+1].isOccupied()) {
+                if (board[y-1][x+1].isOccupied()&&board[y-1][x+1].getOccupyingPiece().getColor()!=this.getColor()) {
                 	primary.add(board[y-1][x+1]);
                 }
             }
                 
             if (x-1 >= 0 && y-1 >= 0) {
-                if (board[y-1][x-1].isOccupied()) {
+                if (board[y-1][x-1].isOccupied()&&board[y-1][x-1].getOccupyingPiece().getColor()!=this.getColor()) {
                 	primary.add(board[y-1][x-1]);
                 }
             }
@@ -99,7 +99,6 @@ public class Pawn extends Piece {
         int x = this.getPosition().getXNum();
         int y = this.getPosition().getYNum();
         int c = this.getColor();
-        
         if (c == 0) {
             if (!wasMoved) {
                 if (((y+2) < 8) && (!board[y+2][x].isOccupied())) {
@@ -118,16 +117,20 @@ public class Pawn extends Piece {
             if (x+1 < 8 && y+1 < 8) {
                 if (board[y+1][x+1].isOccupied()) {
                     Piece piece = board[y+1][x+1].getOccupyingPiece();
-                    Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y+1][x+1]);
-                    moves.add(new Pair<Integer, Pair<Piece, Square>>(piece.getScore(), pair));
+                    if (piece.getColor()!=this.getColor()) {
+                    	Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y+1][x+1]);
+                        moves.add(new Pair<Integer, Pair<Piece, Square>>(piece.getScore(), pair));
+                    }
                 }
             }
                 
             if (x-1 >= 0 && y+1 < 8) {
                 if (board[y+1][x-1].isOccupied()) {
                     Piece piece = board[y+1][x-1].getOccupyingPiece();
-                    Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y+1][x-1]);
-                    moves.add(new Pair<Integer, Pair<Piece, Square>>(piece.getScore(), pair));
+                    if (piece.getColor()!=this.getColor()) {
+                    	Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y+1][x+1]);
+                        moves.add(new Pair<Integer, Pair<Piece, Square>>(piece.getScore(), pair));
+                    }
                 }
             }
         }
@@ -150,16 +153,20 @@ public class Pawn extends Piece {
             if (x+1 < 8 && y-1 >= 0) {
                 if (board[y-1][x+1].isOccupied()) {
                     Piece piece = board[y-1][x+1].getOccupyingPiece();
-                    Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y-1][x+1]);
-                    moves.add(new Pair<Integer, Pair<Piece, Square>>(piece.getScore(), pair));
+                    if (piece.getColor()!=this.getColor()) {
+                    	Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y+1][x+1]);
+                        moves.add(new Pair<Integer, Pair<Piece, Square>>(piece.getScore(), pair));
+                    }
                 }
             }
                 
             if (x-1 >= 0 && y-1 >= 0) {
                 if (board[y-1][x-1].isOccupied()) {
                     Piece piece = board[y-1][x-1].getOccupyingPiece();
-                    Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y-1][x-1]);
-                    moves.add(new Pair<Integer, Pair<Piece, Square>>(0, pair));
+                    if (piece.getColor()!=this.getColor()) {
+                    	Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y+1][x+1]);
+                        moves.add(new Pair<Integer, Pair<Piece, Square>>(piece.getScore(), pair));
+                    }
                 }
             }
         }

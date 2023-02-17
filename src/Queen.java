@@ -26,9 +26,7 @@ public class Queen extends Piece {
                 if (board[i][x].getOccupyingPiece().getColor() != this.getColor()) {
                     primary.add(board[i][x]);
                 }
-                else {
-                    break;
-                }
+                break;
             }
             else {
                 secondary.add(board[i][x]);
@@ -39,9 +37,7 @@ public class Queen extends Piece {
                 if (board[i][x].getOccupyingPiece().getColor() != this.getColor()) {
                     primary.add(board[i][x]);
                 }
-                else {
-                    break;
-                }
+                break;
             }
             else {
                 secondary.add(board[i][x]);
@@ -53,9 +49,7 @@ public class Queen extends Piece {
                 if (board[y][i].getOccupyingPiece().getColor() != this.getColor()) {
                     primary.add(board[y][i]);
                 }
-                else {
-                    break;
-                }
+                break;
             }
             else {
                 secondary.add(board[y][i]);
@@ -66,9 +60,7 @@ public class Queen extends Piece {
                 if (board[y][i].getOccupyingPiece().getColor() != this.getColor()) {
                     primary.add(board[y][i]);
                 }
-                else {
                     break;
-                }
             }
             else {
                 secondary.add(board[y][i]);
