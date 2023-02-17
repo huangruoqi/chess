@@ -26,6 +26,10 @@ public class Pawn extends Piece {
     @Override
     public List<Square> getLegalMoves(Board b) {
         ArrayList<Square> legalMoves = new ArrayList<Square>();
+        ArrayList<Square> secondary = new ArrayList<Square>();
+        for (int i = 0; i < secondary.size(); i++) {
+            legalMoves.add(secondary.get(i))
+        }
         
         Square[][] board = b.getSquareArray();
         
@@ -36,13 +40,13 @@ public class Pawn extends Piece {
         if (c == 0) {
             if (!wasMoved) {
                 if (((y+2) < 8) && (!board[y+2][x].isOccupied())) {
-                    legalMoves.add(board[y+2][x]);
+                    secondary.add(board[y+2][x]);
                 }
             }
             
             if (y+1 < 8) {
                 if (!board[y+1][x].isOccupied()) {
-                    legalMoves.add(board[y+1][x]);
+                    secondary.add(board[y+1][x]);
                 }
             }
             
@@ -74,15 +78,18 @@ public class Pawn extends Piece {
             
             if (x+1 < 8 && y-1 >= 0) {
                 if (board[y-1][x+1].isOccupied()) {
-                    legalMoves.add(board[y-1][x+1]);
+                    secondary.add(board[y-1][x+1]);
                 }
             }
                 
             if (x-1 >= 0 && y-1 >= 0) {
                 if (board[y-1][x-1].isOccupied()) {
-                    legalMoves.add(board[y-1][x-1]);
+                    secondary.add(board[y-1][x-1]);
                 }
             }
+        }
+        for (int i = 0; i < secondary.size(); i++) {
+            legalMoves.add(secondary.get(i))
         }
         
         return legalMoves;

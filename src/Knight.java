@@ -13,7 +13,8 @@ public class Knight extends Piece {
 
     @Override
     public List<Square> getLegalMoves(Board b) {
-        ArrayList<Square> legalMoves = new ArrayList<Square>();
+        ArrayList<Square> primary = new ArrayList<Square>();
+        ArrayList<Square> secondary = new ArrayList<Square>();
         Square[][] board = b.getSquareArray();
         
         int x = this.getPosition().getXNum();
@@ -24,7 +25,14 @@ public class Knight extends Piece {
                 if(Math.abs(i) == 2 ^ Math.abs(k) == 2) {
                     if (k != 0 && i != 0) {
                         try {
-                            legalMoves.add(board[y + k][x + i]);
+                            if (board[y+k][x+i].isOccupied()) {
+                                if (board[y+k][x+i].getOccupyingPiece().getColor()!=this.getColor()){
+                                    primary.add(board[y + k][x + i]);
+                                }
+                            }
+                            else {
+                                secondary.add(board[y+k][x+i]);
+                            }
                         } catch (ArrayIndexOutOfBoundsException e) {
                             continue;
                         }
@@ -32,8 +40,8 @@ public class Knight extends Piece {
                 }
             }
         }
-        
-        return legalMoves;
+        primary.addAll(secondary);
+        return primary;
     }
 
 }

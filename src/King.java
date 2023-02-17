@@ -1,5 +1,3 @@
-
-
 import java.util.ArrayList;
 
 import java.util.List;
@@ -13,7 +11,8 @@ public class King extends Piece {
 
     @Override
     public List<Square> getLegalMoves(Board b) {
-        ArrayList<Square> legalMoves = new ArrayList<Square>();
+        ArrayList<Square> primary = new ArrayList<Square>();
+        ArrayList<Square> secondary = new ArrayList<Square>();
         
         Square[][] board = b.getSquareArray();
         
@@ -24,10 +23,11 @@ public class King extends Piece {
             for (int k = 1; k > -2; k--) {
                 if(!(i == 0 && k == 0)) {
                     try {
-                        if(!board[y + k][x + i].isOccupied() || 
-                                board[y + k][x + i].getOccupyingPiece().getColor() 
-                                != this.getColor()) {
-                            legalMoves.add(board[y + k][x + i]);
+                        if(!board[y + k][x + i].isOccupied()){
+                            secondary.add(board[y+k][x+i]);
+                        } 
+                        else if (board[y + k][x + i].getOccupyingPiece().getColor() != this.getColor()) {
+                            primary.add(board[y + k][x + i]);
                         }
                     } catch (ArrayIndexOutOfBoundsException e) {
                         continue;
@@ -36,7 +36,10 @@ public class King extends Piece {
             }
         }
         
-        return legalMoves;
+        for (int i = 0; i < secondary.size(); i++) {
+            primary.add(secondary.get(i))
+        }
+        return primary;
     }
 
 }

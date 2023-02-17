@@ -12,27 +12,71 @@ public class Queen extends Piece {
 
     @Override
     public List<Square> getLegalMoves(Board b) {
-        ArrayList<Square> legalMoves = new ArrayList<Square>();
         Square[][] board = b.getSquareArray();
         
         int x = this.getPosition().getXNum();
         int y = this.getPosition().getYNum();
         
-        int[] occups = getLinearOccupations(board, x, y);
+        ArrayList<Square> primary = new ArrayList<Square>();
+        ArrayList<Square> secondary = new ArrayList<Square>();
         
-        for (int i = occups[0]; i <= occups[1]; i++) {
-            if (i != y) legalMoves.add(board[i][x]);
+        for (int i = y+1; i < 8; i++) {
+            if (board[i][x].isOccupied()) {
+                if (board[i][x].getOccupyingPiece().getColor() != this.color) {
+                    primary.add(board[i][x]);
+                }
+                else {
+                    break;
+                }
+            }
+            else {
+                secondary.add(board[i][x]);
+            }
         }
-        
-        for (int i = occups[2]; i <= occups[3]; i++) {
-            if (i != x) legalMoves.add(board[y][i]);
+        for (int i = y-1; i >= 0; i--) {
+            if (board[i][x].isOccupied()) {
+                if (board[i][x].getOccupyingPiece().getColor() != this.color) {
+                    primary.add(board[i][x]);
+                }
+                else {
+                    break;
+                }
+            }
+            else {
+                secondary.add(board[i][x]);
+            }
         }
+
+        for (int i = x + 1; i < 8; i++) {
+            if (board[y][i].isOccupied()) {
+                if (board[y][i].getOccupyingPiece().getColor() != this.color) {
+                    primary.add(board[y][i]);
+                }
+                else {
+                    break;
+                }
+            }
+            else {
+                secondary.add(board[y][i]);
+            }
+        }
+        for (int i = x - 1; i >= 0; i--) {
+            if (board[y][i].isOccupied()) {
+                if (board[y][i].getOccupyingPiece().getColor() != this.color) {
+                    primary.add(board[y][i]);
+                }
+                else {
+                    break;
+                }
+            }
+            else {
+                secondary.add(board[y][i]);
+            }
+        }
+        primary.addAll(getDiagonalOccupations(board, x, y));
+        primary.addAll(secondary());
         
-        List<Square> bMoves = getDiagonalOccupations(board, x, y);
-        
-        legalMoves.addAll(bMoves);
-        
-        return legalMoves;
+        return primary;
     }
     
 }
