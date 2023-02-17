@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import javafx.util.Pair;
 
 import javax.imageio.ImageIO;
 
@@ -135,9 +136,7 @@ public abstract class Piece {
                 if (board[i][x].getOccupyingPiece().getColor() != this.color) {
                     primary.add(board[i][x]);
                 }
-                else {
-                    break;
-                }
+                break;
             }
             else {
                 secondary.add(board[i][x]);
@@ -148,9 +147,7 @@ public abstract class Piece {
                 if (board[i][x].getOccupyingPiece().getColor() != this.color) {
                     primary.add(board[i][x]);
                 }
-                else {
-                    break;
-                }
+                break;
             }
             else {
                 secondary.add(board[i][x]);
@@ -162,9 +159,7 @@ public abstract class Piece {
                 if (board[y][i].getOccupyingPiece().getColor() != this.color) {
                     primary.add(board[y][i]);
                 }
-                else {
-                    break;
-                }
+                break;
             }
             else {
                 secondary.add(board[y][i]);
@@ -175,9 +170,7 @@ public abstract class Piece {
                 if (board[y][i].getOccupyingPiece().getColor() != this.color) {
                     primary.add(board[y][i]);
                 }
-                else {
-                    break;
-                }
+                break;
             }
             else {
                 secondary.add(board[y][i]);
@@ -269,4 +262,6 @@ public abstract class Piece {
     
     // No implementation, to be implemented by each subclass
     public abstract List<Square> getLegalMoves(Board b);
+
+    public abstract List<Pair<Integer, Pair<Piece, Square>>> getMovesWithScore(Board b);
 }

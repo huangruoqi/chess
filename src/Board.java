@@ -637,8 +637,167 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
     }
 
+    private Pair<Integer, Pair<Piece, Square>> Minimax_pruning_sorted(boolean turnSelector, int depthLevel, Piece selected, int alpha, int beta) {
+        String strDepth = g.depth.getText();
+        int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
+        gameTreeDepth = (gameTreeDepth >= 0) ? gameTreeDepth : DEPTH_LEVEL;
+        if (depthLevel > gameTreeDepth) {
+            // Return MinMax Value if Depth Limit has reached
+            count++;
+            return (new Pair<Integer, Pair<Piece, Square>>(getScore(), null));
+        }
+        int minimaxValue;
+        Piece best_piece = null;
+        Square best_square = null;
+        if (selected != null) {
+        	Piece piece = selected;
+        	minimaxValue = Integer.MIN_VALUE;
+            List<Square> possibleMoves = piece.getLegalMoves(this);
+            for (int j = 0; j < possibleMoves.size(); j++) {
+                Square square = possibleMoves.get(j);
+                if ((square.getOccupyingPiece() == null) ||
+                        ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
+                        ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
+                        )
+                {
+                    Square currSq = null;
+                    Piece capturedPiece = null;
+                    if (square != null) {
+                        if (square.isOccupied()) {
+                            capturedPiece = square.getOccupyingPiece();
+                        }
+                        currSq = piece.getPosition();
+                    }
+
+                    boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
+                    if (!success) continue;
+                    int valMinMax = 0;
+                    Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning_sorted(!turnSelector, depthLevel+1, null, alpha, beta);
+                    valMinMax = r.getKey();
+
+                    // Undo the move
+                    piece.move(currSq);
+                    if (capturedPiece != null) {
+                        if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
+                            Bpieces.add(capturedPiece);
+                        }
+                        else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
+                            Wpieces.add(capturedPiece);
+                        }
+                        capturedPiece.move(square);
+                    }
+                    cmd.update();
+                    if (valMinMax > minimaxValue) {
+                        minimaxValue = valMinMax;
+                        alpha = Math.max(alpha, valMinMax);
+                        if (beta <= alpha) {
+                            return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
+                        }
+                        best_piece = piece;
+                        best_square = square;
+                    }
+                }
+
+            }
+            return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
+        }
+        List<Pair<Integer, Pair<Piece, Square>>> moves = getAllMoves(turnSelector);
+        if (depthLevel==0) {
+        	System.out.println(moves.size());
+        }
+
+        if (turnSelector) {
+            minimaxValue = Integer.MAX_VALUE;
+            for (int i = 0; i < moves.size(); i++) {
+                Piece piece = moves.get(i).getValue().getKey();
+                Square square = moves.get(i).getValue().getValue();
+                Piece capturedPiece = null;
+                Square currSq = null;
+                if (square.isOccupied()) {
+                    capturedPiece = square.getOccupyingPiece();
+                }
+                currSq = piece.getPosition();
+                boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
+                if (!success) continue;
+                int valMinMax = 0;
+                Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning_sorted(!turnSelector, depthLevel+1, null, alpha, beta);
+                valMinMax = r.getKey();
+
+                // Undo the move
+                piece.move(currSq);
+                if (capturedPiece != null) {
+                    if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
+                        Bpieces.add(capturedPiece);
+                    }
+                    else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
+                        Wpieces.add(capturedPiece);
+                    }
+                    capturedPiece.move(square);
+                }
+                cmd.update();
+                if (valMinMax < minimaxValue) {
+                    minimaxValue = valMinMax;
+                    beta = Math.min(beta, valMinMax);
+                    if (beta <= alpha) {
+                        return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
+                    }
+                    best_piece = piece;
+                    best_square = square;
+                }
+            }
+        }
+        else {
+            minimaxValue = Integer.MIN_VALUE;
+            for (int i = 0; i < moves.size(); i++) {
+                Piece piece = moves.get(i).getValue().getKey();
+                Square square = moves.get(i).getValue().getValue();
+                Piece capturedPiece = null;
+                Square currSq = null;
+                if (square.isOccupied()) {
+                    capturedPiece = square.getOccupyingPiece();
+                }
+                currSq = piece.getPosition();
+                boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
+                if (!success) continue;
+                int valMinMax = 0;
+                Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning_sorted(!turnSelector, depthLevel+1, null, alpha, beta);
+                valMinMax = r.getKey();
+                // Undo the move
+                piece.move(currSq);
+                if (capturedPiece != null) {
+                    if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
+                        Bpieces.add(capturedPiece);
+                    }
+                    else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
+                        Wpieces.add(capturedPiece);
+                    }
+                    capturedPiece.move(square);
+                }
+                cmd.update();
+                if (valMinMax > minimaxValue) {
+                    minimaxValue = valMinMax;
+                    alpha = Math.max(alpha, valMinMax);
+                    if (beta <= alpha) {
+                        return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
+                    }
+                    best_piece = piece;
+                    best_square = square;
+                }
+            }
+        }
+        return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
+    }
 
 
+    private List<Pair<Integer, Pair<Piece, Square>>> getAllMoves(boolean turnSelector) {
+        List<Piece> pieces = turnSelector ? Wpieces : Bpieces;
+        List<Pair<Integer, Pair<Piece, Square>>> moves = new ArrayList<>();
+        for (int i = 0 ; i < pieces.size(); i++) {
+            moves.addAll(pieces.get(i).getMovesWithScore(this));
+        }
+        moves.sort(Comparator.<Pair<Integer, Pair<Piece, Square>>>comparingInt(Pair::getKey).reversed());
+        return moves;
+    }
 
 
 
@@ -695,11 +854,11 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                 return false;
             }
             else {
-                List<Square> legalMoves = piece.getLegalMoves(this);
-                movable = cmd.getAllowableSquares(turnSelector);
-
-                if (legalMoves.contains(sq) && movable.contains(sq)
-                        && cmd.testMove(piece, sq)) {
+//                List<Square> legalMoves = piece.getLegalMoves(this);
+//                movable = cmd.getAllowableSquares(turnSelector);
+//
+//                if (legalMoves.contains(sq) && movable.contains(sq)
+//                        && cmd.testMove(piece, sq)) {
                     sq.setDisplay(true);
                     piece.move(sq);
                     cmd.update();
@@ -726,7 +885,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                             newText = newText + "White in Check\r\n";
                         }
                     }
-                }
+//                }
             }
         }
 
@@ -749,9 +908,10 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
             else {
                 List<Square> legalMoves = currPiece.getLegalMoves(this);
                 movable = cmd.getAllowableSquares(whiteTurn);
-                
-                if (legalMoves.contains(sq) && movable.contains(sq)
-                        && cmd.testMove(currPiece, sq)) {
+//                
+// 				Assume player move is legal
+//                if (legalMoves.contains(sq) && movable.contains(sq)
+//                        && cmd.testMove(currPiece, sq)) {
                     sq.setDisplay(true);
                     currPiece.move(sq);
                     cmd.update();
@@ -808,7 +968,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 	                            Stack<String> futureMoves = new Stack<String>();
 	                            count = 0;
 	                            long startTime = System.nanoTime();
-	                            Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(false, 0, null, Integer.MIN_VALUE, Integer.MAX_VALUE);
+	                            Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning_sorted(false, 0, null, Integer.MIN_VALUE, Integer.MAX_VALUE);
 	                            System.out.println(""+(System.nanoTime() - startTime)/1000000000 + " seconds");
 	                            System.out.println(count + " evaluations");
 	                            Pair<Piece, Square> m = r.getValue();
@@ -829,11 +989,11 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 	                        
                         }
                     }
-                } else {
-                    currPiece.getPosition().setDisplay(true);
-                    currPiece = null;
-                    newText = newText + "Invalid Move\r\n";
-                }
+//                } else {
+//                    currPiece.getPosition().setDisplay(true);
+//                    currPiece = null;
+//                    newText = newText + "Invalid Move\r\n";
+//                }
             }
         }
         else {
