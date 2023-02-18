@@ -461,6 +461,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         }
 
         String newText = "";
+        String time = "";
         List<Pair<Integer, Pair<Piece, Square>>> moves = getAllMoves(whiteTurn, false);
         boolean hasMove = false;
         for (int i = 0; i < moves.size(); i++) {
@@ -514,7 +515,8 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                     count = 0;
                     long startTime = System.nanoTime();
                     Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning_sorted(false, 0, null, Integer.MIN_VALUE, Integer.MAX_VALUE, gameTreeDepth);
-                    System.out.println(""+(System.nanoTime() - startTime)/1000000000 + " seconds");
+                    time = (System.nanoTime() - startTime)/1000000000 + " seconds\r\n";
+                    System.out.println(time);
                     System.out.println("Score: " + r.getKey());
                     System.out.println(count);
 
@@ -564,9 +566,8 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
             currPiece = null;
             newText = "Invalid Move\r\n";
         }
-        g.moves.setText(newText);
+        g.moves.setText(time+newText);
         repaint();
-        g.buttons.update(g.buttons.getGraphics());
 
         running = false;
     }
