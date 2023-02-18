@@ -40,12 +40,12 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     public List<Square> movable;
 
     private boolean whiteTurn;
+    private boolean running;
 
     private Piece currPiece;
     private int currX;
     private int currY;
     
-    private CheckmateDetector cmd;
     private int count;
 
     public Board(GameWindow g) {
@@ -60,6 +60,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
             this.g = g;
             board = new Square[8][8];
             whiteTurn = true;
+            running = false;
         }
     }
 
@@ -103,10 +104,8 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     	
         
         board[7][3].put(new Queen(1, board[7][3], RESOURCES_WQUEEN_PNG));
-        Wpieces.add(board[7][3].getOccupyingPiece());
         board[0][3].put(new Queen(0, board[0][3], RESOURCES_BQUEEN_PNG));
-        Bpieces.add(board[0][3].getOccupyingPiece());
-        
+
         Bk = new King(0, board[0][4], RESOURCES_BKING_PNG);
         Wk = new King(1, board[7][4], RESOURCES_WKING_PNG);
         board[0][4].put(Bk);
@@ -116,29 +115,33 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         board[0][7].put(new Rook(0, board[0][7], RESOURCES_BROOK_PNG));
         board[7][0].put(new Rook(1, board[7][0], RESOURCES_WROOK_PNG));
         board[7][7].put(new Rook(1, board[7][7], RESOURCES_WROOK_PNG));
-        Bpieces.add(board[0][0].getOccupyingPiece());
-        Bpieces.add(board[0][7].getOccupyingPiece());
-        Wpieces.add(board[7][0].getOccupyingPiece());
-        Wpieces.add(board[7][7].getOccupyingPiece());
+        
 
         board[0][1].put(new Knight(0, board[0][1], RESOURCES_BKNIGHT_PNG));
         board[0][6].put(new Knight(0, board[0][6], RESOURCES_BKNIGHT_PNG));
         board[7][1].put(new Knight(1, board[7][1], RESOURCES_WKNIGHT_PNG));
         board[7][6].put(new Knight(1, board[7][6], RESOURCES_WKNIGHT_PNG));
-        Bpieces.add(board[0][1].getOccupyingPiece());
-        Bpieces.add(board[0][6].getOccupyingPiece());
-        Wpieces.add(board[7][1].getOccupyingPiece());
-        Wpieces.add(board[7][6].getOccupyingPiece());
+        
 
         board[0][2].put(new Bishop(0, board[0][2], RESOURCES_BBISHOP_PNG));
         board[0][5].put(new Bishop(0, board[0][5], RESOURCES_BBISHOP_PNG));
         board[7][2].put(new Bishop(1, board[7][2], RESOURCES_WBISHOP_PNG));
         board[7][5].put(new Bishop(1, board[7][5], RESOURCES_WBISHOP_PNG));
+        
+        Wpieces.add(board[7][3].getOccupyingPiece());
+        Bpieces.add(board[0][3].getOccupyingPiece());
+        Bpieces.add(board[0][0].getOccupyingPiece());
+        Bpieces.add(board[0][7].getOccupyingPiece());
+        Wpieces.add(board[7][0].getOccupyingPiece());
+        Wpieces.add(board[7][7].getOccupyingPiece());
+        Bpieces.add(board[0][1].getOccupyingPiece());
+        Bpieces.add(board[0][6].getOccupyingPiece());
+        Wpieces.add(board[7][1].getOccupyingPiece());
+        Wpieces.add(board[7][6].getOccupyingPiece());
         Bpieces.add(board[0][2].getOccupyingPiece());
         Bpieces.add(board[0][5].getOccupyingPiece());
         Wpieces.add(board[7][2].getOccupyingPiece());
         Wpieces.add(board[7][5].getOccupyingPiece());
-        
         for (int x = 0; x < 8; x++) {
             board[1][x].put(new Pawn(0, board[1][x], RESOURCES_BPAWN_PNG));
             Bpieces.add(board[1][x].getOccupyingPiece());
@@ -148,7 +151,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
         Bpieces.add(Bk);
         Wpieces.add(Wk);
-        cmd = new CheckmateDetector(this /*, Wpieces, Bpieces, wk, bk*/);
     }
 
     public Square[][] getSquareArray() {
@@ -250,7 +252,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         newBoard.currY = this.currY;
         newBoard.whiteTurn = this.whiteTurn;
 
-        newBoard.cmd = new CheckmateDetector(newBoard /*, newBoard.Wpieces, newBoard.Bpieces, wk, bk*/);
 
         return newBoard;
     }
@@ -284,363 +285,33 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     }
     
     private int getScore() {
-    	int legalMovesScore = 0;
         int piecesScore = 0;
     	for (Piece p: Bpieces) {
-//    		legalMovesScore += p.getLegalMoves(this).size();
             piecesScore += p.getScore();
     	}
     	for (Piece p: Wpieces) {
-//    		legalMovesScore -= p.getLegalMoves(this).size();
             piecesScore -= p.getScore();
     	}
-    	return (int)(piecesScore + legalMovesScore / 10.0);
+
+        List<Pair<Integer, Pair<Piece, Square>>> whiteMoves = getAllMoves(true);
+        List<Pair<Integer, Pair<Piece, Square>>> blackMoves = getAllMoves(false);
+        int threatScore = 0;
+        int moveScore = (whiteMoves.size() + blackMoves.size());
+        for (int i = 0; i < whiteMoves.size(); i++) {
+            threatScore -= whiteMoves.get(i).getKey();
+        }
+        for (int i = 0; i < blackMoves.size(); i++) {
+            threatScore += blackMoves.get(i).getKey();
+        }
+
+    	return piecesScore + threatScore/2 + moveScore/10;
     }
     
-    private Pair<Integer, Pair<Piece, Square>> Minimax(boolean turnSelector, int depthLevel, Piece selected, int alpha, int beta) {
-        String strDepth = g.depth.getText();
-        int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
-        gameTreeDepth = (gameTreeDepth > 0) ? gameTreeDepth : DEPTH_LEVEL;
-        
-        if (depthLevel > gameTreeDepth) {
-            // Return MinMax Value if Depth Limit has reached
-            int value = getScore();
-            count++;
-            return (new Pair<Integer, Pair<Piece, Square>>(value, null));
-        }
-        int minimaxValue;
-        Piece best_piece = null;
-        Square best_square = null;
-        if (selected != null) {
-        	Piece piece = selected;
-        	minimaxValue = Integer.MIN_VALUE;
-            List<Square> possibleMoves = piece.getLegalMoves(this);
-            for (int j = 0; j < possibleMoves.size(); j++) {
-                Square square = possibleMoves.get(j);
-                if ((square.getOccupyingPiece() == null) ||
-                        ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
-                        ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
-                        )
-                {
-                    Square currSq = null;
-                    Piece capturedPiece = null;
-                    if (square != null) {
-                        if (square.isOccupied()) {
-                            capturedPiece = square.getOccupyingPiece();
-                        }
-                        currSq = piece.getPosition();
-                    }
-                    boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
-                    if (!success) continue;
-
-                    int valMinMax = 0;
-                    Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1, null, alpha, beta);
-                    valMinMax = r.getKey();
-
-                    // Undo the move
-                    piece.move(currSq);
-
-                    if (capturedPiece != null) {
-                        if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
-                            Bpieces.add(capturedPiece);
-                        }
-                        else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
-                            Wpieces.add(capturedPiece);
-                        }
-                        capturedPiece.move(square);
-                    }
-                    cmd.update();
-                    if (valMinMax > minimaxValue) {
-                        minimaxValue = valMinMax;
-                        best_piece = piece;
-                        best_square = square;
-                    }
-                }
-
-            }
-            return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
-        }
-        if (turnSelector) {
-            minimaxValue = Integer.MAX_VALUE;
-            for (int i = 0; i < Wpieces.size(); i++) {
-                Piece piece = Wpieces.get(i);
-                List<Square> possibleMoves = piece.getLegalMoves(this);
-                for (int j = 0; j < possibleMoves.size(); j++) {
-                    Square square = possibleMoves.get(j);
-                    if ((square.getOccupyingPiece() == null) ||
-                            ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
-                            ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
-                            )
-                    {
-                        Square currSq = null;
-                        Piece capturedPiece = null;
-                        if (square != null) {
-                            if (square.isOccupied()) {
-                                capturedPiece = square.getOccupyingPiece();
-                            }
-                            currSq = piece.getPosition();
-                        }
-                        boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
-                        if (!success) continue;
-
-                        int valMinMax = 0;
-                        Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1, null, alpha, beta);
-                        valMinMax = r.getKey();
-
-                        // Undo the move
-                        piece.move(currSq);
-
-                        if (capturedPiece != null) {
-                            if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
-                                Bpieces.add(capturedPiece);
-                            }
-                            else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
-                                Wpieces.add(capturedPiece);
-                            }
-                            capturedPiece.move(square);
-                        }
-                        cmd.update();
-                        if (valMinMax < minimaxValue) {
-                            minimaxValue = valMinMax;
-                            
-                            best_piece = piece;
-                            best_square = square;
-                        }
-                    }
-                }
-            }
-
-        }
-        else {
-            minimaxValue = Integer.MIN_VALUE;
-            for (int i = 0; i < Bpieces.size(); i++) {
-                Piece piece = Bpieces.get(i);
-                List<Square> possibleMoves = piece.getLegalMoves(this);
-                for (int j = 0; j < possibleMoves.size(); j++) {
-                    Square square = possibleMoves.get(j);
-                    if ((square.getOccupyingPiece() == null) ||
-                            ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
-                            ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
-                            )
-                    {
-                        Square currSq = null;
-                        Piece capturedPiece = null;
-                        if (square != null) {
-                            if (square.isOccupied()) {
-                                capturedPiece = square.getOccupyingPiece();
-                            }
-                            currSq = piece.getPosition();
-                        }
-                        boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
-                        if (!success) continue;
-                        int valMinMax = 0;
-                        Pair<Integer, Pair<Piece, Square>> r = Minimax(!turnSelector, depthLevel+1, null, alpha, beta);
-                        valMinMax = r.getKey();
-
-                        // Undo the move
-                        piece.move(currSq);
-                        if (capturedPiece != null) {
-                            if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
-                                Bpieces.add(capturedPiece);
-                            }
-                            else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
-                                Wpieces.add(capturedPiece);
-                            }
-                            capturedPiece.move(square);
-                        }
-                        cmd.update();
-                        if (valMinMax > minimaxValue) {
-                            minimaxValue = valMinMax;
-                 
-                            best_piece = piece;
-                            best_square = square;
-                        }
-                    }
-                }
-            }
-        }
-        return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
-    }
-
-
-    private Pair<Integer, Pair<Piece, Square>> Minimax_pruning(boolean turnSelector, int depthLevel, Piece selected, int alpha, int beta) {
-        String strDepth = g.depth.getText();
-        int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
-        gameTreeDepth = (gameTreeDepth >= 0) ? gameTreeDepth : DEPTH_LEVEL;
-        if (depthLevel > gameTreeDepth) {
-            // Return MinMax Value if Depth Limit has reached
-            count++;
-            return (new Pair<Integer, Pair<Piece, Square>>(getScore(), null));
-        }
-        int minimaxValue;
-        Piece best_piece = null;
-        Square best_square = null;
-        if (selected != null) {
-        	Piece piece = selected;
-        	minimaxValue = Integer.MIN_VALUE;
-            List<Square> possibleMoves = piece.getLegalMoves(this);
-            for (int j = 0; j < possibleMoves.size(); j++) {
-                Square square = possibleMoves.get(j);
-                if ((square.getOccupyingPiece() == null) ||
-                        ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
-                        ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
-                        )
-                {
-                    Square currSq = null;
-                    Piece capturedPiece = null;
-                    if (square != null) {
-                        if (square.isOccupied()) {
-                            capturedPiece = square.getOccupyingPiece();
-                        }
-                        currSq = piece.getPosition();
-                    }
-
-                    boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
-                    if (!success) continue;
-                    int valMinMax = 0;
-                    Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(!turnSelector, depthLevel+1, null, alpha, beta);
-                    valMinMax = r.getKey();
-
-                    // Undo the move
-                    piece.move(currSq);
-                    if (capturedPiece != null) {
-                        if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
-                            Bpieces.add(capturedPiece);
-                        }
-                        else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
-                            Wpieces.add(capturedPiece);
-                        }
-                        capturedPiece.move(square);
-                    }
-                    cmd.update();
-                    if (valMinMax > minimaxValue) {
-                        minimaxValue = valMinMax;
-                        alpha = Math.max(alpha, valMinMax);
-                        if (beta <= alpha) {
-                            return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
-                        }
-                        best_piece = piece;
-                        best_square = square;
-                    }
-                }
-
-            }
-            return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
-        }
-        if (turnSelector) {
-            minimaxValue = Integer.MAX_VALUE;
-            for (int i = 0; i < Wpieces.size(); i++) {
-                Piece piece = Wpieces.get(i);
-                List<Square> possibleMoves = piece.getLegalMoves(this);
-//                Collections.shuffle(possibleMoves);
-                for (int j = 0; j < possibleMoves.size(); j++) {
-                    Square square = possibleMoves.get(j);
-                    if ((square.getOccupyingPiece() == null) ||
-                            ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
-                            ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
-                            )
-                    {
-                        Square currSq = null;
-                        Piece capturedPiece = null;
-                        if (square != null) {
-                            if (square.isOccupied()) {
-                                capturedPiece = square.getOccupyingPiece();
-                            }
-                            currSq = piece.getPosition();
-                        }
-                        boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
-                        if (!success) continue;
-
-                        int valMinMax = 0;
-                        Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(!turnSelector, depthLevel+1, null, alpha, beta);
-                        valMinMax = r.getKey();
-
-                        // Undo the move
-                        piece.move(currSq);
-                        if (capturedPiece != null) {
-                            if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
-                                Bpieces.add(capturedPiece);
-                            }
-                            else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
-                                Wpieces.add(capturedPiece);
-                            }
-                            capturedPiece.move(square);
-                        }
-                        cmd.update();
-                        if (valMinMax < minimaxValue) {
-                            minimaxValue = valMinMax;
-                            beta = Math.min(beta, valMinMax);
-                            if (beta <= alpha) {
-                                return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
-                            }
-                            best_piece = piece;
-                            best_square = square;
-                        }
-                    }
-                }
-            }
-
-        }
-        else {
-            minimaxValue = Integer.MIN_VALUE;
-            for (int i = 0; i < Bpieces.size(); i++) {
-                Piece piece = Bpieces.get(i);
-                List<Square> possibleMoves = piece.getLegalMoves(this);
-//                Collections.shuffle(possibleMoves);
-                for (int j = 0; j < possibleMoves.size(); j++) {
-                    Square square = possibleMoves.get(j);
-                    if ((square.getOccupyingPiece() == null) ||
-                            ((turnSelector == false) && (square.getOccupyingPiece().getColor() == 1)) ||
-                            ((turnSelector == true) && (square.getOccupyingPiece().getColor() == 0))
-                            )
-                    {
-                        Square currSq = null;
-                        Piece capturedPiece = null;
-                        if (square != null) {
-                            if (square.isOccupied()) {
-                                capturedPiece = square.getOccupyingPiece();
-                            }
-                            currSq = piece.getPosition();
-                        }
-                        boolean success = this.takeTurnEx(piece, square, turnSelector, "", depthLevel);
-                        if (!success) continue;
-                        int valMinMax = 0;
-                        Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning(!turnSelector, depthLevel+1, null, alpha, beta);
-                        valMinMax = r.getKey();
-
-                        // Undo the move
-                        piece.move(currSq);
-                        if (capturedPiece != null) {
-                            if ((capturedPiece.getColor() == 0) && (!Bpieces.contains(capturedPiece))) {
-                                Bpieces.add(capturedPiece);
-                            }
-                            else if ((capturedPiece.getColor() == 1) && (!Wpieces.contains(capturedPiece))) {
-                                Wpieces.add(capturedPiece);
-                            }
-                            capturedPiece.move(square);
-                        }
-                        cmd.update();
-                        if (valMinMax > minimaxValue) {
-                            minimaxValue = valMinMax;
-                            alpha = Math.max(alpha, valMinMax);
-                            if (beta <= alpha) {
-                                return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
-                            }
-                            best_piece = piece;
-                            best_square = square;
-                        }
-                    }
-                }
-            }
-        }
-        return (new Pair<Integer, Pair<Piece, Square>>(minimaxValue, new Pair<Piece, Square>(best_piece, best_square)));
-    }
-
+    
     private Pair<Integer, Pair<Piece, Square>> Minimax_pruning_sorted(boolean turnSelector, int depthLevel, Piece selected, int alpha, int beta, int gameTreeDepth) {
-        count++;
         List<Piece> opponentPieces = turnSelector ? Bpieces : Wpieces;
-
-        if (depthLevel > gameTreeDepth) {
+        count++;
+        if (depthLevel >= gameTreeDepth) {
             // Return MinMax Value if Depth Limit has reached
         	int score = getScore();        	
 
@@ -648,7 +319,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         }
         Piece best_piece = null;
         Square best_square = null;
-        List<Pair<Integer, Pair<Piece, Square>>> moves = getAllMoves(turnSelector);
+        List<Pair<Integer, Pair<Piece, Square>>> moves = getAllMoves(turnSelector, turnSelector);
         int minimaxValue = turnSelector ? Integer.MAX_VALUE : Integer.MIN_VALUE;
         for (int i = 0; i < moves.size(); i++) {
             Piece piece = moves.get(i).getValue().getKey();
@@ -697,13 +368,13 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
     }
 
 
-    private List<Pair<Integer, Pair<Piece, Square>>> getAllMoves(boolean turnSelector) {
+    private List<Pair<Integer, Pair<Piece, Square>>> getAllMoves(boolean turnSelector, boolean increasing) {
         List<Piece> pieces = turnSelector ? Wpieces : Bpieces;
         List<Pair<Integer, Pair<Piece, Square>>> moves = new ArrayList<>();
         for (int i = 0 ; i < pieces.size(); i++) {
             moves.addAll(pieces.get(i).getMovesWithScore(this));
         }
-        if (turnSelector) {
+        if (increasing) {
             moves.sort(Comparator.<Pair<Integer, Pair<Piece, Square>>>comparingInt(Pair::getKey));
         } else {
             moves.sort(Comparator.<Pair<Integer, Pair<Piece, Square>>>comparingInt(Pair::getKey).reversed());
@@ -711,187 +382,193 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         return moves;
     }
 
-
-
-    private boolean EvadeCheck() {
-
-        Stack<String> tempFutureMoves = new Stack<String>();
-        // Try to find best square to move the King
-        count = 0;
-        String strDepth = g.depth.getText();
-        int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
-        gameTreeDepth = (gameTreeDepth >= 0) ? gameTreeDepth : DEPTH_LEVEL;
-        Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning_sorted(false, 0, Bk, Integer.MIN_VALUE, Integer.MAX_VALUE, gameTreeDepth);
-        System.out.println(count);
-        int valMinMax = r.getKey();
-        Square sq = r.getValue().getValue();
-
-        if (!takeTurnEx(Bk, sq, false, "", 0)) {
-            List<Square> kingsMoves = Bk.getLegalMoves(this);
-            Iterator<Square> iterator = kingsMoves.iterator();
-
-            // If best square is not available pick any available square
-            while (iterator.hasNext()) {
-                sq = iterator.next();
-                if (!cmd.testMove(Bk, sq)) continue;
-                if (cmd.wMoves.get(sq.hashCode()).isEmpty()) {
-                    takeTurnEx(Bk, sq, false, "", 0);
-                    return true;
-                }
-            }
+    private List<Pair<Integer, Pair<Piece, Square>>> getAllMoves(boolean turnSelector) {
+        List<Piece> pieces = turnSelector ? Wpieces : Bpieces;
+        List<Pair<Integer, Pair<Piece, Square>>> moves = new ArrayList<>();
+        for (int i = 0 ; i < pieces.size(); i++) {
+            moves.addAll(pieces.get(i).getMovesWithScore(this));
         }
-        else {
-            return true;
-        }
-        return false;
+        return moves;
     }
 
-    private boolean takeTurnEx(Piece piece, Square sq, boolean turnSelector, String prevPos, int depthLevel) {
-        String newText = "";
-        sq.setDisplay(true);
-        piece.move(sq);
-        cmd.update();
-
-        if (g.watchMoves.isSelected()) {
-            int valMinMax = getScore();
-            newText = prevPos + piece.getPositionName();
-            newText = newText + " Level: " + Integer.toString(depthLevel);
-            newText = newText + " Val: " + Integer.toString(valMinMax) + "\r\n";
-            g.moves.setText(newText);
-            g.moves.update(g.moves.getGraphics());
-        }
-
-        if (cmd.blackCheckMated()) {
-            newText = newText + "Black Checkmated\r\n";
-        } else if (cmd.whiteCheckMated()) {
-            newText = newText + "White Checkmated\r\n";
-        }
-        else {
-            if (cmd.blackInCheck()) {
-                newText = newText + "Black in Check\r\n";
-            } else if (cmd.whiteInCheck()) {
-                newText = newText + "White in Check\r\n";
+    private boolean isCheckmate(boolean turnSelector) {
+        List<Pair<Integer, Pair<Piece, Square>>> moves = getAllMoves(turnSelector);
+        for (int i = 0; i < moves.size(); i++) {
+            Piece piece = moves.get(i).getValue().getKey();
+            Square square = moves.get(i).getValue().getValue();
+            if (isLegal(piece, square)) {
+                return false;
             }
-        }
-
-
-        if (g.watchMoves.isSelected()) {
-            this.update(this.getGraphics());
         }
         return true;
     }
 
+    private boolean isLegal(Piece piece, Square square) {
+        List<Piece> opponentPieces = piece.getColor()==0 ? Wpieces : Bpieces;
+        // move
+        Piece capturedPiece = square.getOccupyingPiece();
+        Square currSq = piece.getPosition();
+        if (capturedPiece != null) {
+            opponentPieces.remove(capturedPiece);
+        }
+        square.setOccupyingPiece(piece);
+        piece.setPosition(square);
+        currSq.setOccupyingPiece(null);
+
+        boolean result = isCheck(piece.getColor()!=0);
+
+        // Undo the move
+        if (capturedPiece != null) {
+            opponentPieces.add(capturedPiece);
+        }
+        square.setOccupyingPiece(capturedPiece);
+        piece.setPosition(currSq);
+        currSq.setOccupyingPiece(piece);
+
+        return !result;
+    }
+
+    private boolean isCheck(boolean turnSelector) {
+        List<Pair<Integer, Pair<Piece, Square>>> moves = getAllMoves(!turnSelector, false);
+        return moves.get(0).getKey()==200;
+    }
+
     private void takeTurn(Square sq) {
+    	if (running) {
+            g.moves.setText("Turn ongoing\r\n");
+            repaint();
+    		return;
+    	}
+    	running = true;
+        if (currPiece == null) {
+            g.moves.setText("Null Piece\r\n");
+            repaint();
+            running = false;
+            return;
+        }
+        
+        if (currPiece.getColor() == 0 && whiteTurn) {
+            g.moves.setText("Black Piece on White's turn\r\n");
+            repaint();
+            running = false;
+            return;
+        }
+        if (currPiece.getColor() == 1 && !whiteTurn) {
+            g.moves.setText("White Piece on Black's turn\r\n");
+            repaint();
+            running = false;
+            return;
+        }
+
         String newText = "";
-        if (currPiece != null) {
-            if (currPiece.getColor() == 0 && whiteTurn) {
-                newText = "Black Piece on White's turn\r\n";
+        List<Pair<Integer, Pair<Piece, Square>>> moves = getAllMoves(whiteTurn, false);
+        boolean hasMove = false;
+        for (int i = 0; i < moves.size(); i++) {
+            Piece piece = moves.get(i).getValue().getKey();
+            Square square = moves.get(i).getValue().getValue();
+            if (piece==currPiece && square==sq) {
+                hasMove = true;
             }
-            else if (currPiece.getColor() == 1 && !whiteTurn) {
-                newText = "White Piece on Black's turn\r\n";
+        }
+        if (hasMove && isLegal(currPiece, sq)) {
+            sq.setDisplay(true);
+            
+            // move
+            Piece capturedPiece = sq.getOccupyingPiece();
+            List<Piece> opponentPieces = Bpieces;
+            Square currSq = currPiece.getPosition();
+            if (capturedPiece != null) {
+                opponentPieces.remove(capturedPiece);
+            }
+            sq.setOccupyingPiece(currPiece);
+            currPiece.setPosition(sq);
+            currSq.setOccupyingPiece(null);
+            
+            newText = currPiece.getPositionName() + "\r\n";
+            if (isCheckmate(false)) {
+                currPiece = null;
+                repaint();
+                this.removeMouseListener(this);
+                this.removeMouseMotionListener(this);
+                g.checkmateOccurred(0);
+                newText = "Black Checkmated\r\n";
             }
             else {
-            List<Square> legalMoves = currPiece.getLegalMoves(this);
-            movable = cmd.getAllowableSquares(whiteTurn);
-            
-            if (legalMoves.contains(sq) && movable.contains(sq)
-                       && cmd.testMove(currPiece, sq)) {
-                    sq.setDisplay(true);
+                boolean blackInCheck = isCheck(false);
+                if (blackInCheck) {
+                    g.moves.setText("Black in Check\r\n");
+                } 
+                whiteTurn = !whiteTurn;
+                currPiece = null;
+                if (!whiteTurn) {
+
+                    // Let Computer pick the next turn
+                    g.gameStatus.setText("Status: Computing");
+                    g.buttons.update(g.buttons.getGraphics());
+
                     
-                    // move
-                    Piece capturedPiece = sq.getOccupyingPiece();
-                    List<Piece> opponentPieces = whiteTurn ? Bpieces : Wpieces;
-                    Square currSq = currPiece.getPosition();
+                    String strDepth = g.depth.getText();
+                    int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
+                    gameTreeDepth = (gameTreeDepth >= 0) ? gameTreeDepth : DEPTH_LEVEL;
+                    
+                    count = 0;
+                    long startTime = System.nanoTime();
+                    Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning_sorted(false, 0, null, Integer.MIN_VALUE, Integer.MAX_VALUE, gameTreeDepth);
+                    System.out.println(""+(System.nanoTime() - startTime)/1000000000 + " seconds");
+                    System.out.println("Score: " + r.getKey());
+                    System.out.println(count);
+
+                    
+                    Pair<Piece, Square> m = r.getValue();
+                    currPiece = m.getKey();
+                    Square square = m.getValue();
+                    Piece piece = m.getKey();
+                    capturedPiece = square.getOccupyingPiece();
+                    opponentPieces = whiteTurn ? Bpieces : Wpieces;
+                    currSq = piece.getPosition();
                     if (capturedPiece != null) {
                         opponentPieces.remove(capturedPiece);
                     }
-                	sq.setOccupyingPiece(currPiece);
-                    currPiece.setPosition(sq);
+                    square.setOccupyingPiece(piece);
+                    currPiece.setPosition(square);
                     currSq.setOccupyingPiece(null);
                     
+                    whiteTurn = true; // Change the turn back to White
+                    g.gameStatus.setText("Status: Move to " + currPiece.getPositionName());
+                    g.buttons.update(g.buttons.getGraphics());
+                    square.setDisplay(true);
+                    repaint();
 
-                    newText = currPiece.getPositionName() + "\r\n";
-                    if (cmd.blackCheckMated()) {
-                        currPiece = null;
-                        repaint();
-                        this.removeMouseListener(this);
-                        this.removeMouseMotionListener(this);
-                        g.checkmateOccurred(0);
-                        newText = newText + "Black Checkmated\r\n";
-                    } else if (cmd.whiteCheckMated()) {
-                        currPiece = null;
-                        repaint();
-                        this.removeMouseListener(this);
-                        this.removeMouseMotionListener(this);
-                        g.checkmateOccurred(1);
-                        newText = newText + "White Checkmated\r\n";
-                    }
-                    else {
-                        boolean blackInCheck = cmd.blackInCheck();
-                        if (blackInCheck) {
-                            newText = newText + "Black in Check\r\n";
-                        } else if (cmd.whiteInCheck()) {
-                            newText = newText + "White in Check\r\n";
-                        }
-                        whiteTurn = !whiteTurn;
-                        currPiece = null;
-                        if (!whiteTurn) {
-
-                            // Let Computer pick the next turn
-                            g.gameStatus.setText("Status: Computing");
-                            g.buttons.update(g.buttons.getGraphics());
-
-                            count = 0;
-                            long startTime = System.nanoTime();
-                            String strDepth = g.depth.getText();
-                            int gameTreeDepth = Integer.parseInt(strDepth.substring(17).trim());
-                            gameTreeDepth = (gameTreeDepth >= 0) ? gameTreeDepth : DEPTH_LEVEL;
-                            Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning_sorted(false, 0, null, Integer.MIN_VALUE, Integer.MAX_VALUE, gameTreeDepth);
-                            System.out.println("Score: " + r.getKey());
-                            System.out.println(""+(System.nanoTime() - startTime)/1000000000 + " seconds");
-                            System.out.println(count + " recursions");
-                            Pair<Piece, Square> m = r.getValue();
-                            currPiece = m.getKey();
-
-                            Square square = m.getValue();
-                            Piece piece = m.getKey();
-                            capturedPiece = square.getOccupyingPiece();
-                            opponentPieces = whiteTurn ? Bpieces : Wpieces;
-                            currSq = piece.getPosition();
-                            if (capturedPiece != null) {
-                                opponentPieces.remove(capturedPiece);
-                            }
-                        	square.setOccupyingPiece(piece);
-                            currPiece.setPosition(square);
-                            currSq.setOccupyingPiece(null);
-                            
-                            whiteTurn = true; // Change the turn back to White
-                            g.gameStatus.setText("Status: Move to " + currPiece.getPositionName());
-                            g.buttons.update(g.buttons.getGraphics());
-                            if (blackInCheck) {
-                                if (cmd.blackInCheck()) { 
-                                   newText = "Check not evaded, minimax failed!!!";
-                                   System.err.println(newText);
-                                } else {
-                                    newText = "Check evaded.";
-                                }
-                            }
+                    if (blackInCheck) {
+                        if (isCheck(false)) { 
+                            newText = "Check not evaded, minimax failed!!!";
+                            System.err.println(newText);
+                        } else {
+                            newText = "Check evaded.";
                         }
                     }
-               	} else {
-            	   	currPiece.getPosition().setDisplay(true);
-            	   	currPiece = null;
-            	   	newText = newText + "Invalid Move\r\n";
-               	}
+                }
+                if (isCheckmate(true)) {
+                    currPiece = null;
+                    this.removeMouseListener(this);
+                    this.removeMouseMotionListener(this);
+                    g.checkmateOccurred(1);
+                    newText = newText + "White Checkmated\r\n";
+                }
+                else if (isCheck(true)) {
+                    newText = newText + "White in Check\r\n";
+                }
             }
+        } else {
+            currPiece.getPosition().setDisplay(true);
+            currPiece = null;
+            newText = "Invalid Move\r\n";
         }
-        else {
-            newText = "Null Piece\r\n";
-        }
-
         g.moves.setText(newText);
-
         repaint();
+        g.buttons.update(g.buttons.getGraphics());
+
+        running = false;
     }
 
     @Override

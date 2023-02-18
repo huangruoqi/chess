@@ -221,7 +221,7 @@ public class GameWindow {
 
         gameStatus = new JLabel("Status: ");
 
-        depth = new JTextField("Evaluation Depth: 5");
+        depth = new JTextField("Evaluation Depth: 6");
 
         JPanel actButtons = new JPanel();
         actButtons.setLayout(new GridLayout(3, 2, 10, 10));
