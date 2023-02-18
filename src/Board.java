@@ -50,8 +50,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
 
     public Board(GameWindow g) {
         initializeBoard(g);
-        System.out.println(Bpieces);
-        System.out.println(Wpieces);
     }
 
     public Board(GameWindow g, boolean init) {
@@ -645,16 +643,7 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         if (depthLevel > gameTreeDepth) {
             // Return MinMax Value if Depth Limit has reached
         	int score = getScore();        	
-        	int size = Wpieces.size() + Bpieces.size();
-        	if (size >= 33) {
-        		System.out.println("Size: " + size);
-        		System.out.println("\n");
-        		System.out.println(Bpieces);
-        		System.out.println(Wpieces);
-        		System.out.println("\n");
-        	}
-//        	System.out.println("Size:  " + size);
-//        	System.out.println("Score: " + score);
+
             return (new Pair<Integer, Pair<Piece, Square>>(score, null));
         }
         Piece best_piece = null;
@@ -672,10 +661,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
         	square.setOccupyingPiece(piece);
             piece.setPosition(square);
             currSq.setOccupyingPiece(null);
-            
-
-            
-//                cmd.update();
 
             Pair<Integer, Pair<Piece, Square>> r = Minimax_pruning_sorted(!turnSelector, depthLevel+1, null, alpha, beta, gameTreeDepth);
 
@@ -688,8 +673,6 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
             square.setOccupyingPiece(capturedPiece);
             piece.setPosition(currSq);
             currSq.setOccupyingPiece(piece);
-//              cmd.update();
-
 
             if (turnSelector && valMinMax < minimaxValue) {
                 minimaxValue = valMinMax;
@@ -808,12 +791,11 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                 newText = "White Piece on Black's turn\r\n";
             }
             else {
-//                List<Square> legalMoves = currPiece.getLegalMoves(this);
-//                movable = cmd.getAllowableSquares(whiteTurn);
-//                
-// 				Assume player move is legal
-//                if (legalMoves.contains(sq) && movable.contains(sq)
-//                        && cmd.testMove(currPiece, sq)) {
+            List<Square> legalMoves = currPiece.getLegalMoves(this);
+            movable = cmd.getAllowableSquares(whiteTurn);
+            
+            if (legalMoves.contains(sq) && movable.contains(sq)
+                       && cmd.testMove(currPiece, sq)) {
                     sq.setDisplay(true);
                     
                     // move
@@ -896,11 +878,11 @@ public class Board extends JPanel implements MouseListener, MouseMotionListener 
                             }
                         }
                     }
-//                } else {
-                    currPiece.getPosition().setDisplay(true);
-//                    currPiece = null;
-//                    newText = newText + "Invalid Move\r\n";
-//                }
+               	} else {
+            	   	currPiece.getPosition().setDisplay(true);
+            	   	currPiece = null;
+            	   	newText = newText + "Invalid Move\r\n";
+               	}
             }
         }
         else {
