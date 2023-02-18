@@ -41,6 +41,10 @@ public class Square extends JComponent {
         return occupyingPiece;
     }
     
+    public void setOccupyingPiece(Piece p) {
+    	this.occupyingPiece = p;
+    }
+    
     public boolean isOccupied() {
         return (this.occupyingPiece != null);
     }

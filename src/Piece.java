@@ -31,6 +31,9 @@ public abstract class Piece {
             System.out.println("File not found: " + e.getMessage());
           }
     }
+    public String toString() {
+    	return this.currentSquare.getXNum()+"," + this.currentSquare.getYNum() + ","+score;
+    }
 
     public Piece copyPiece() {
         if (this.getClass().getName().equals("Bishop")) {
@@ -91,13 +94,13 @@ public abstract class Piece {
     }
 
     public boolean move(Square fin) {
-        Piece occup = fin.getOccupyingPiece();
-        
-        if (occup != null) {
-            if (occup.getColor() == this.color) return false;
-            else fin.capture(this);
-        }
-        
+//        Piece occup = fin.getOccupyingPiece();
+//        
+//        if (occup != null) {
+//            if (occup.getColor() == this.color) return false;
+//            else fin.capture(this);
+//        }
+//        
         currentSquare.removePiece();
         this.currentSquare = fin;
         currentSquare.put(this);

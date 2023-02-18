@@ -101,7 +101,7 @@ public class Pawn extends Piece {
         int c = this.getColor();
         if (c == 0) {
             if (!wasMoved) {
-                if (((y+2) < 8) && (!board[y+2][x].isOccupied())) {
+                if (((y+2) < 8) && (!board[y+2][x].isOccupied())&& (!board[y+1][x].isOccupied())) {
                     Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y+2][x]);
                     moves.add(new Pair<Integer, Pair<Piece, Square>>(0, pair));
                 }
@@ -137,7 +137,7 @@ public class Pawn extends Piece {
         
         if (c == 1) {
             if (!wasMoved) {
-                if (((y-2) >= 0) && (!board[y-2][x].isOccupied())) {
+                if (((y-2) >= 0) && (!board[y-2][x].isOccupied())&& (!board[y-1][x].isOccupied())) {
                     Pair<Piece, Square> pair = new Pair<Piece, Square>(this, board[y-2][x]);
                     moves.add(new Pair<Integer, Pair<Piece, Square>>(0, pair));
                 }
